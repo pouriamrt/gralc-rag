@@ -13,7 +13,7 @@ from Bio import Entrez
 from datasets import load_dataset
 from tqdm import tqdm
 
-from gralc_rag.config import CORPUS_DIR, PUBMEDQA_DIR
+from gralc_rag.config import CORPUS_DIR, PUBMEDQA_DIR, NCBI_API_KEY
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +21,11 @@ Entrez.email = "gralcrag@research.org"
 
 # Minimum interval between NCBI requests (seconds) for 3 req/s rate limit.
 _NCBI_INTERVAL: float = 1.0 / 3.0
+
+if NCBI_API_KEY:
+    Entrez.api_key = NCBI_API_KEY
+    _NCBI_INTERVAL = 1.0 / 10.0
+    logger.info("NCBI API key configured: 10 req/sec rate limit")
 
 
 # ---------------------------------------------------------------------------
@@ -196,3 +201,54 @@ def get_related_pmids(
         len(result_list),
     )
     return result_list
+
+
+# ---------------------------------------------------------------------------
+# PMC search
+# ---------------------------------------------------------------------------
+
+def search_pmc_articles(
+    query: str = "biomedical research",
+    max_results: int = 2000,
+    exclude_pmids: set[str] | None = None,
+) -> list[str]:
+    """Search PMC for open-access articles matching *query*.
+
+    Uses Entrez.esearch to find PMC article IDs.
+    Returns a list of PMC ID strings, up to *max_results*.
+    """
+    all_ids: list[str] = []
+    batch_size = 500
+    exclude = exclude_pmids or set()
+
+    for retstart in range(0, max_results, batch_size):
+        try:
+            handle = Entrez.esearch(
+                db="pmc",
+                term=f"{query} AND open access[filter]",
+                retmax=min(batch_size, max_results - len(all_ids)),
+                retstart=retstart,
+                sort="relevance",
+            )
+            results = Entrez.read(handle)
+            handle.close()
+
+            ids = results.get("IdList", [])
+            if not ids:
+                break
+
+            for pmcid in ids:
+                sid = str(pmcid)
+                if sid not in exclude:
+                    all_ids.append(sid)
+                if len(all_ids) >= max_results:
+                    break
+        except Exception:
+            logger.warning("esearch failed at retstart=%d", retstart, exc_info=True)
+
+        time.sleep(_NCBI_INTERVAL)
+        if len(all_ids) >= max_results:
+            break
+
+    logger.info("Found %d PMC IDs for query '%s'", len(all_ids), query)
+    return all_ids[:max_results]
