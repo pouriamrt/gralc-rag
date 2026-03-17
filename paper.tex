@@ -333,12 +333,147 @@ Structure-Aware      & 2,139  & 1,044.1 \\
 \label{fig:efficiency}
 \end{figure}
 
+\subsection{Full-Text Evaluation}
+
+To assess whether \gralcrag{}'s structural and ontological components provide benefit on longer documents, we construct a document-length gradient evaluation spanning four conditions of increasing textual complexity:
+
+\begin{enumerate}[leftmargin=*,itemsep=2pt]
+  \item \textbf{Abstract} (${\sim}$200 words): Single-paragraph summaries lacking internal structure. Serves as the baseline condition (Section~5.1).
+  \item \textbf{Introduction} (${\sim}$500--1{,}000 words): Multi-paragraph sections with background context and citations, but no methods or results.
+  \item \textbf{Partial} (${\sim}$2{,}000--4{,}000 words): Introduction + Methods sections, introducing structural boundaries and cross-referential content.
+  \item \textbf{Full-text} (${\sim}$5{,}000--8{,}000 words): Complete IMRaD articles with rich section hierarchy, cross-section dependencies, and dense biomedical entity networks.
+\end{enumerate}
+
+The corpus consists of 1{,}500--10{,}000 PMC Open Access articles filtered for standard IMRaD structure using JATS~XML section-header parsing. Articles without identifiable Introduction, Methods, Results, and Discussion sections are excluded. Each article contributes one document instance per condition (abstract, introduction, partial, full-text), enabling paired comparisons across strategies.
+
+Table~\ref{tab:fulltext} presents retrieval performance across document-length conditions and strategies.
+
+\begin{table}[H]
+\centering
+\caption{Retrieval performance across document-length conditions. Values are placeholder results pending experimental completion.}
+\label{tab:fulltext}
+\small
+\begin{tabular}{@{}llcccc@{}}
+\toprule
+\textbf{Condition} & \textbf{Strategy} & \textbf{MRR} & \textbf{R@1} & \textbf{R@5} & \textbf{nDCG@10} \\
+\midrule
+\multirow{4}{*}{Abstract}
+  & Naive              & [TBD] & [TBD] & [TBD] & [TBD] \\
+  & Semantic           & [TBD] & [TBD] & [TBD] & [TBD] \\
+  & Late Chunking      & [TBD] & [TBD] & [TBD] & [TBD] \\
+  & \gralcrag{}        & [TBD] & [TBD] & [TBD] & [TBD] \\
+\midrule
+\multirow{4}{*}{Introduction}
+  & Naive              & [TBD] & [TBD] & [TBD] & [TBD] \\
+  & Semantic           & [TBD] & [TBD] & [TBD] & [TBD] \\
+  & Late Chunking      & [TBD] & [TBD] & [TBD] & [TBD] \\
+  & \gralcrag{}        & [TBD] & [TBD] & [TBD] & [TBD] \\
+\midrule
+\multirow{4}{*}{Partial}
+  & Naive              & [TBD] & [TBD] & [TBD] & [TBD] \\
+  & Semantic           & [TBD] & [TBD] & [TBD] & [TBD] \\
+  & Late Chunking      & [TBD] & [TBD] & [TBD] & [TBD] \\
+  & \gralcrag{}        & [TBD] & [TBD] & [TBD] & [TBD] \\
+\midrule
+\multirow{4}{*}{Full-text}
+  & Naive              & [TBD] & [TBD] & [TBD] & [TBD] \\
+  & Semantic           & [TBD] & [TBD] & [TBD] & [TBD] \\
+  & Late Chunking      & [TBD] & [TBD] & [TBD] & [TBD] \\
+  & \gralcrag{}        & [TBD] & [TBD] & [TBD] & [TBD] \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Figure~\ref{fig:crossover} shows MRR across document-length conditions for all strategies, illustrating the expected crossover point at which \gralcrag{}'s structure-aware components begin to outperform simpler methods as document length and structural complexity increase.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/fig6_crossover_plot.pdf}
+\caption{MRR across document-length conditions (abstract, introduction, partial, full-text) for all retrieval strategies. The crossover point where \gralcrag{} surpasses simpler methods indicates the document length at which structure-awareness becomes beneficial.}
+\label{fig:crossover}
+\end{figure}
+
+\subsection{Cross-Section Retrieval}
+
+A key hypothesis motivating \gralcrag{} is that structure-aware chunking should excel at retrieving information that requires reasoning across document sections---for example, linking a method description to its corresponding results, or connecting an introduction's hypothesis to the discussion's interpretation. To evaluate this, we construct a synthetic cross-section QA benchmark.
+
+\subsubsection{Benchmark Construction}
+
+We generate 500--800 template-based questions that explicitly require cross-section reasoning, drawn from five template types:
+
+\begin{enumerate}[leftmargin=*,itemsep=2pt]
+  \item \textbf{Method$\to$Result:} ``What results were obtained using [method X]?''
+  \item \textbf{Intro$\to$Result:} ``Does the data support the hypothesis that [hypothesis from introduction]?''
+  \item \textbf{Result$\to$Discussion:} ``How do the authors interpret the finding that [result Y]?''
+  \item \textbf{Method$\to$Discussion:} ``What limitations of [method X] are discussed?''
+  \item \textbf{Cross-study:} ``How do the results compare to [cited prior work Z]?''
+\end{enumerate}
+
+Template slots are populated from parsed section content using regex and entity extraction. An additional 100--150 questions are validated by an LLM judge (GPT-4o) for naturalness and answerability.
+
+\subsubsection{Evaluation Metrics}
+
+We define two cross-section-specific metrics:
+
+\textbf{Cross-Section Recall (CS~Recall):} The proportion of cross-section questions for which the top-$k$ retrieved chunks span at least two distinct document sections required by the question template. Measured per document-length condition.
+
+\textbf{Section Coverage@$k$ (SecCov@$k$):} The average number of distinct document sections represented in the top-$k$ retrieved chunks, normalized by the total number of sections in the source document.
+
+Table~\ref{tab:crosssection} presents cross-section retrieval results.
+
+\begin{table}[H]
+\centering
+\caption{Cross-section retrieval performance. CS~Recall measures whether retrieved chunks span the required sections. SecCov@5 measures section diversity in top-5 results.}
+\label{tab:crosssection}
+\small
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{Strategy} & \textbf{CS Recall (Intro)} & \textbf{CS Recall (Partial)} & \textbf{CS Recall (Full)} & \textbf{SecCov@5} \\
+\midrule
+Naive              & [TBD] & [TBD] & [TBD] & [TBD] \\
+Semantic           & [TBD] & [TBD] & [TBD] & [TBD] \\
+Late Chunking      & [TBD] & [TBD] & [TBD] & [TBD] \\
+Structure-Aware    & [TBD] & [TBD] & [TBD] & [TBD] \\
+\gralcrag{} (KG)  & [TBD] & [TBD] & [TBD] & [TBD] \\
+\gralcrag{} + GR  & [TBD] & [TBD] & [TBD] & [TBD] \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Figure~\ref{fig:heatmap} presents a heatmap of cross-section recall across question template types and retrieval strategies, revealing which strategy--question-type combinations benefit most from structural awareness. Figure~\ref{fig:seccoverage} shows section coverage distributions.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/fig7_heatmap.pdf}
+\caption{Heatmap of cross-section recall by question template type (rows) and retrieval strategy (columns). Darker cells indicate higher cross-section recall. Structure-aware strategies are expected to show stronger performance on Method$\to$Result and Result$\to$Discussion templates.}
+\label{fig:heatmap}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.85\linewidth]{figures/fig8_section_coverage.pdf}
+\caption{Section coverage (SecCov@5) distributions across strategies. Higher section coverage indicates that retrieved chunks span more distinct document sections, reflecting the retrieval system's ability to surface cross-section evidence.}
+\label{fig:seccoverage}
+\end{figure}
+
 % ══════════════════════════════════════════════════════════════
 \section{Discussion}
 
 \subsection{When Does Graph-Aware Late Chunking Help?}
 
 Our experiments reveal that \gralcrag{}'s value is \textbf{context-dependent}. On short texts (abstracts), simpler methods suffice because: (a)~abstracts lack internal section structure; (b)~general-purpose embeddings already capture sufficient semantic signal; (c)~KG infusion adds noise rather than complementary information. The theoretical value proposition remains sound for \emph{long, multi-section documents} where cross-section dependencies matter, document structure provides meaningful segmentation cues, and biomedical entities span hundreds of unique concepts per article.
+
+\subsection{The Document-Length Effect}
+
+The document-length gradient evaluation (Section~5.4) is designed to reveal a fundamental property of structure-aware retrieval: its value is proportional to the structural complexity of the input. On abstracts (${\sim}$200~words), all strategies achieve near-ceiling performance because the text is short, topically focused, and structurally flat. This creates a ceiling effect that masks any potential benefit of structural or ontological components. As document length increases through the introduction, partial, and full-text conditions, structural complexity grows: documents acquire section boundaries, cross-referential content, and dense entity networks. The crossover point---the document length at which \gralcrag{} is expected to surpass simpler methods (Figure~\ref{fig:crossover})---represents the central empirical contribution of this work, establishing when and why structure-awareness becomes necessary for biomedical retrieval.
+
+\subsection{When Does Structure-Awareness Matter?}
+
+Structural boundary signals in \gralcrag{}'s chunk boundary detection (Section~3.5) are inherently inert when documents lack multiple sections. The structure-aware boundary score $b_i^{\text{struct}}$ assigns elevated values only at section (1.0), subsection (0.7), and paragraph (0.4) boundaries. For single-paragraph abstracts, this signal collapses to zero everywhere, explaining the negligible impact ($\Delta$\,MRR = $-$0.0003) observed in the ablation study (Section~5.2). The cross-section retrieval benchmark (Section~5.5) directly tests whether structure-aware chunking improves retrieval of information spanning multiple document sections---a capability that becomes relevant only when documents \emph{have} multiple sections. The Method$\to$Result and Result$\to$Discussion question templates are designed to probe precisely this capability.
+
+\subsection{Implications for Biomedical RAG}
+
+These findings carry practical implications for practitioners building biomedical RAG systems. First, \textbf{document length should inform strategy selection}: for abstract-level corpora (PubMed), simple semantic chunking suffices; for full-text corpora (PMC Open Access), structure-aware approaches may provide meaningful gains. Second, \textbf{KG infusion benefits are conditional}: ontological enrichment via UMLS adds value only when the base embedder cannot capture the relevant biomedical relationships from text alone---a condition more likely in long documents where entity mentions are separated by thousands of tokens. Third, \textbf{evaluation design must match deployment context}: benchmarking on short texts creates ceiling effects that systematically undervalue structural and ontological components, potentially leading to suboptimal architecture choices for full-text retrieval applications.
 
 \subsection{Comparison with Concurrent Work}
 
@@ -347,10 +482,12 @@ HeteRAG~\cite{yang2025heterag} decouples retrieval and generation representation
 \subsection{Limitations}
 
 \begin{enumerate}[leftmargin=*,itemsep=2pt]
-  \item \textbf{Proof-of-concept scale.} Evaluation on abstracts creates near-ceiling effects (MRR~$>$~0.95). Full-text evaluation with larger distractor corpora is needed.
+  \item \textbf{Synthetic benchmark validity.} The cross-section QA benchmark (Section~5.5) uses template-generated questions that may not capture the full range of cross-section reasoning patterns encountered in real biomedical information needs. While LLM validation filters unnatural questions, the template-based approach may overrepresent certain reasoning patterns (e.g., Method$\to$Result) and underrepresent others (e.g., implicit cross-section reasoning).
+  \item \textbf{IMRaD filter bias.} The full-text evaluation corpus (Section~5.4) is filtered for standard IMRaD structure, excluding review articles, case reports, letters, editorials, and non-standard formats. This introduces a selection bias toward primary research articles, and the framework's generalization to non-IMRaD documents remains untested.
   \item \textbf{Entity linking quality.} MeSH dictionary matching may introduce false positives for polysemous terms (\eg, ``MS'' as multiple sclerosis vs.\ mass spectrometry).
   \item \textbf{Context window constraints.} Approximately 62\% of full-text articles exceed the 8,192-token window, requiring sliding-window approximation.
   \item \textbf{Single-language scope.} Evaluation is limited to English biomedical literature.
+  \item \textbf{Contingency for null results.} If the document-length gradient fails to reveal a crossover point---\ie, if \gralcrag{} does not outperform simpler methods even on full-text articles---the paper contributes a novel negative finding: that structure-aware and ontology-enriched chunking does not improve retrieval for biomedical literature at any document length. Such a result would carry significant practical value by informing practitioners against unnecessary architectural complexity.
 \end{enumerate}
 
 \subsection{Future Directions}

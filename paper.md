@@ -400,6 +400,83 @@ Table 3 reports actual indexing times measured on our PoC setup (CPU-only, 16GB 
 
 **Key observations.** GraLC-RAG indexing takes 2,566s (42.8 min) — approximately 6x slower than naive chunking and 2.5x slower than structure-aware without KG infusion. The overhead comes from: (a) SapBERT encoding of 823 unique biomedical entities (~16s), (b) entity linking per article using 41,774 MeSH terms (~12 min), and (c) repeated structure-aware chunking with boundary score computation (~17 min). On GPU hardware, the embedding and GAT computation steps would be 10-50x faster, bringing GraLC-RAG indexing time closer to late chunking.
 
+### 5.5 Full-Text Evaluation
+
+To assess whether GraLC-RAG's structural and ontological components provide benefit on longer documents, we construct a document-length gradient evaluation spanning four conditions of increasing textual complexity:
+
+1. **Abstract** (~200 words): Single-paragraph summaries lacking internal structure. Serves as the baseline condition (Section 5.1).
+2. **Introduction** (~500-1,000 words): Multi-paragraph sections with background context and citations, but no methods or results.
+3. **Partial** (~2,000-4,000 words): Introduction + Methods sections, introducing structural boundaries and cross-referential content.
+4. **Full-text** (~5,000-8,000 words): Complete IMRaD articles with rich section hierarchy, cross-section dependencies, and dense biomedical entity networks.
+
+The corpus consists of 1,500-10,000 PMC Open Access articles filtered for standard IMRaD structure using JATS XML section-header parsing. Articles without identifiable Introduction, Methods, Results, and Discussion sections are excluded. Each article contributes one document instance per condition (abstract, introduction, partial, full-text), enabling paired comparisons across strategies.
+
+**Table 4: Retrieval performance across document-length conditions. Values are placeholder results pending experimental completion.**
+
+| Condition | Strategy | MRR | R@1 | R@5 | nDCG@10 |
+|-----------|----------|:---:|:---:|:---:|:-------:|
+| Abstract | Naive | [TBD] | [TBD] | [TBD] | [TBD] |
+| Abstract | Semantic | [TBD] | [TBD] | [TBD] | [TBD] |
+| Abstract | Late Chunking | [TBD] | [TBD] | [TBD] | [TBD] |
+| Abstract | GraLC-RAG | [TBD] | [TBD] | [TBD] | [TBD] |
+| Introduction | Naive | [TBD] | [TBD] | [TBD] | [TBD] |
+| Introduction | Semantic | [TBD] | [TBD] | [TBD] | [TBD] |
+| Introduction | Late Chunking | [TBD] | [TBD] | [TBD] | [TBD] |
+| Introduction | GraLC-RAG | [TBD] | [TBD] | [TBD] | [TBD] |
+| Partial | Naive | [TBD] | [TBD] | [TBD] | [TBD] |
+| Partial | Semantic | [TBD] | [TBD] | [TBD] | [TBD] |
+| Partial | Late Chunking | [TBD] | [TBD] | [TBD] | [TBD] |
+| Partial | GraLC-RAG | [TBD] | [TBD] | [TBD] | [TBD] |
+| Full-text | Naive | [TBD] | [TBD] | [TBD] | [TBD] |
+| Full-text | Semantic | [TBD] | [TBD] | [TBD] | [TBD] |
+| Full-text | Late Chunking | [TBD] | [TBD] | [TBD] | [TBD] |
+| Full-text | GraLC-RAG | [TBD] | [TBD] | [TBD] | [TBD] |
+
+Figure 6 shows MRR across document-length conditions for all strategies, illustrating the expected crossover point at which GraLC-RAG's structure-aware components begin to outperform simpler methods as document length and structural complexity increase.
+
+**Figure 6:** MRR across document-length conditions (abstract, introduction, partial, full-text) for all retrieval strategies. The crossover point where GraLC-RAG surpasses simpler methods indicates the document length at which structure-awareness becomes beneficial.
+
+### 5.6 Cross-Section Retrieval
+
+A key hypothesis motivating GraLC-RAG is that structure-aware chunking should excel at retrieving information that requires reasoning across document sections---for example, linking a method description to its corresponding results, or connecting an introduction's hypothesis to the discussion's interpretation. To evaluate this, we construct a synthetic cross-section QA benchmark.
+
+#### 5.6.1 Benchmark Construction
+
+We generate 500-800 template-based questions that explicitly require cross-section reasoning, drawn from five template types:
+
+1. **Method->Result:** "What results were obtained using [method X]?"
+2. **Intro->Result:** "Does the data support the hypothesis that [hypothesis from introduction]?"
+3. **Result->Discussion:** "How do the authors interpret the finding that [result Y]?"
+4. **Method->Discussion:** "What limitations of [method X] are discussed?"
+5. **Cross-study:** "How do the results compare to [cited prior work Z]?"
+
+Template slots are populated from parsed section content using regex and entity extraction. An additional 100-150 questions are validated by an LLM judge (GPT-4o) for naturalness and answerability.
+
+#### 5.6.2 Evaluation Metrics
+
+We define two cross-section-specific metrics:
+
+**Cross-Section Recall (CS Recall):** The proportion of cross-section questions for which the top-k retrieved chunks span at least two distinct document sections required by the question template. Measured per document-length condition.
+
+**Section Coverage@k (SecCov@k):** The average number of distinct document sections represented in the top-k retrieved chunks, normalized by the total number of sections in the source document.
+
+**Table 5: Cross-section retrieval performance. CS Recall measures whether retrieved chunks span the required sections. SecCov@5 measures section diversity in top-5 results.**
+
+| Strategy | CS Recall (Intro) | CS Recall (Partial) | CS Recall (Full) | SecCov@5 |
+|----------|:-----------------:|:-------------------:|:----------------:|:--------:|
+| Naive | [TBD] | [TBD] | [TBD] | [TBD] |
+| Semantic | [TBD] | [TBD] | [TBD] | [TBD] |
+| Late Chunking | [TBD] | [TBD] | [TBD] | [TBD] |
+| Structure-Aware | [TBD] | [TBD] | [TBD] | [TBD] |
+| GraLC-RAG (KG) | [TBD] | [TBD] | [TBD] | [TBD] |
+| GraLC-RAG + GR | [TBD] | [TBD] | [TBD] | [TBD] |
+
+Figure 7 presents a heatmap of cross-section recall across question template types and retrieval strategies, revealing which strategy-question-type combinations benefit most from structural awareness. Figure 8 shows section coverage distributions.
+
+**Figure 7:** Heatmap of cross-section recall by question template type (rows) and retrieval strategy (columns). Darker cells indicate higher cross-section recall. Structure-aware strategies are expected to show stronger performance on Method->Result and Result->Discussion templates.
+
+**Figure 8:** Section coverage (SecCov@5) distributions across strategies. Higher section coverage indicates that retrieved chunks span more distinct document sections, reflecting the retrieval system's ability to surface cross-section evidence.
+
 ---
 
 ## 6. Discussion
@@ -414,27 +491,41 @@ Our proof-of-concept experiments reveal that the value of GraLC-RAG's components
 
 **The theoretical value proposition remains sound for long documents.** The mechanisms underlying GraLC-RAG—contextual preservation across sections, ontological enrichment for implicit biomedical relationships, and structural coherence in chunk boundaries—are designed for multi-section full-text articles where: (a) cross-section dependencies matter (e.g., linking Methods to Results), (b) document structure provides meaningful segmentation cues, and (c) biomedical entities span hundreds of unique concepts per article. Our indexed full-text corpus (200 PMC articles, avg 18.2 paragraphs, 6.8 sections) is ready for this evaluation.
 
-### 6.2 Comparison with Concurrent Work
+### 6.2 The Document-Length Effect
+
+The document-length gradient evaluation (Section 5.5) is designed to reveal a fundamental property of structure-aware retrieval: its value is proportional to the structural complexity of the input. On abstracts (~200 words), all strategies achieve near-ceiling performance because the text is short, topically focused, and structurally flat. This creates a ceiling effect that masks any potential benefit of structural or ontological components. As document length increases through the introduction, partial, and full-text conditions, structural complexity grows: documents acquire section boundaries, cross-referential content, and dense entity networks. The crossover point---the document length at which GraLC-RAG is expected to surpass simpler methods (Figure 6)---represents the central empirical contribution of this work, establishing when and why structure-awareness becomes necessary for biomedical retrieval.
+
+### 6.3 When Does Structure-Awareness Matter?
+
+Structural boundary signals in GraLC-RAG's chunk boundary detection (Section 3.5) are inherently inert when documents lack multiple sections. The structure-aware boundary score $b_i^{struct}$ assigns elevated values only at section (1.0), subsection (0.7), and paragraph (0.4) boundaries. For single-paragraph abstracts, this signal collapses to zero everywhere, explaining the negligible impact (delta MRR = -0.0003) observed in the ablation study (Section 5.2). The cross-section retrieval benchmark (Section 5.6) directly tests whether structure-aware chunking improves retrieval of information spanning multiple document sections---a capability that becomes relevant only when documents *have* multiple sections. The Method->Result and Result->Discussion question templates are designed to probe precisely this capability.
+
+### 6.4 Implications for Biomedical RAG
+
+These findings carry practical implications for practitioners building biomedical RAG systems. First, **document length should inform strategy selection**: for abstract-level corpora (PubMed), simple semantic chunking suffices; for full-text corpora (PMC Open Access), structure-aware approaches may provide meaningful gains. Second, **KG infusion benefits are conditional**: ontological enrichment via UMLS adds value only when the base embedder cannot capture the relevant biomedical relationships from text alone---a condition more likely in long documents where entity mentions are separated by thousands of tokens. Third, **evaluation design must match deployment context**: benchmarking on short texts creates ceiling effects that systematically undervalue structural and ontological components, potentially leading to suboptimal architecture choices for full-text retrieval applications.
+
+### 6.5 Comparison with Concurrent Work
 
 Our work relates to but differs from several concurrent approaches. **HeteRAG** (Yang et al., 2025) also decouples retrieval and generation representations but operates on pre-chunked text without late chunking or KG awareness. **SitEmb** (Wu et al., 2025) conditions chunk embeddings on broader context but uses purely textual signals. **ATLANTIC** (Munikoti et al., 2023) fuses graph and text embeddings for scientific retrieval but operates at the document level rather than chunk level. To our knowledge, GraLC-RAG is the first framework to propose integrating all three aspects—contextual embedding, structural boundaries, and ontological enrichment—at the chunk level for biomedical RAG. Whether this combination yields additive or synergistic gains is an empirical question that our planned experiments are designed to answer.
 
-### 6.3 Limitations
+### 6.6 Limitations
 
 Several limitations should be acknowledged:
 
-1. **Proof-of-concept scale.** The retrieval evaluation uses PubMedQA abstracts (~200 words each) as the corpus, which represents a near-ceiling scenario where all strategies achieve MRR > 0.95. The true differentiation between strategies would emerge on full-text articles with rich section structure and larger distractor corpora. Additionally, the evaluation uses a general-purpose embedder (`all-MiniLM-L6-v2`) rather than a biomedical-specific model, which may understate KG infusion benefits. Generation evaluation with an LLM could not be completed due to OpenAI API quota limitations.
+1. **Synthetic benchmark validity.** The cross-section QA benchmark (Section 5.6) uses template-generated questions that may not capture the full range of cross-section reasoning patterns encountered in real biomedical information needs. While LLM validation filters unnatural questions, the template-based approach may overrepresent certain reasoning patterns (e.g., Method->Result) and underrepresent others (e.g., implicit cross-section reasoning).
 
-2. **UMLS coverage and entity linking quality.** Our framework depends on UMLS entity linking via QuickUMLS (approximate string matching, threshold 0.8). This introduces two risks: (a) novel or emerging concepts (e.g., mRNA therapeutics, CRISPR applications) not yet in UMLS will be missed, creating ontological blind spots; (b) polysemous terms (e.g., "MS" as multiple sclerosis vs. mass spectrometry) may be incorrectly linked, injecting semantically wrong ontological signals. We plan to report entity linking precision and recall on a manually annotated subset of our corpus, and to conduct an ablation measuring performance degradation under intentionally degraded entity linking quality.
+2. **IMRaD filter bias.** The full-text evaluation corpus (Section 5.5) is filtered for standard IMRaD structure, excluding review articles, case reports, letters, editorials, and non-standard formats. This introduces a selection bias toward primary research articles, and the framework's generalization to non-IMRaD documents remains untested.
 
-3. **Context window constraints.** Approximately 62% of full-text articles in our corpus exceed the 8,192-token context window of `jina-embeddings-v3`, requiring sliding window processing. This partially compromises the core promise of late chunking (full-document context). The full experimental version will report performance stratified by documents within vs. exceeding the context window. Future long-context models (32K+ tokens) would substantially alleviate this constraint.
+3. **UMLS coverage and entity linking quality.** Our framework depends on UMLS entity linking via QuickUMLS (approximate string matching, threshold 0.8). This introduces two risks: (a) novel or emerging concepts (e.g., mRNA therapeutics, CRISPR applications) not yet in UMLS will be missed, creating ontological blind spots; (b) polysemous terms (e.g., "MS" as multiple sclerosis vs. mass spectrometry) may be incorrectly linked, injecting semantically wrong ontological signals. We plan to report entity linking precision and recall on a manually annotated subset of our corpus, and to conduct an ablation measuring performance degradation under intentionally degraded entity linking quality.
 
-4. **UMLS path distance computation.** The $d_{UMLS}(e_q, e_c)$ computation in the hybrid retrieval score (§3.6.2) traverses a graph with ~15 million relations. At query time, we plan to use pre-computed shortest-path lookup tables for all entity pairs within 3-hop distance (covering >95% of biomedically meaningful relationships), with a fallback maximum distance for unreachable pairs. The storage footprint and query-time overhead of this lookup will be reported in the efficiency analysis.
+4. **Context window constraints.** Approximately 62% of full-text articles in our corpus exceed the 8,192-token context window of `jina-embeddings-v3`, requiring sliding window processing. This partially compromises the core promise of late chunking (full-document context). The full experimental version will report performance stratified by documents within vs. exceeding the context window. Future long-context models (32K+ tokens) would substantially alleviate this constraint.
 
-5. **IMRaD assumption.** The structure-aware boundary detection assumes IMRaD document organization, which does not apply to review articles, case reports, editorials, or correspondence also present in PMC-OA. GROBID parsing quality degrades on non-IMRaD documents. The full evaluation will report the fraction of the corpus with successful IMRaD parsing and fallback behavior (reverting to semantic-only boundaries) for non-standard documents.
+5. **UMLS path distance computation.** The $d_{UMLS}(e_q, e_c)$ computation in the hybrid retrieval score (Section 3.6.2) traverses a graph with ~15 million relations. At query time, we plan to use pre-computed shortest-path lookup tables for all entity pairs within 3-hop distance (covering >95% of biomedically meaningful relationships), with a fallback maximum distance for unreachable pairs. The storage footprint and query-time overhead of this lookup will be reported in the efficiency analysis.
 
 6. **Single-language scope.** Our evaluation is limited to English-language biomedical literature. The framework's effectiveness for multilingual biomedical retrieval remains untested.
 
-### 6.4 Future Directions
+7. **Contingency for null results.** If the document-length gradient fails to reveal a crossover point---i.e., if GraLC-RAG does not outperform simpler methods even on full-text articles---the paper contributes a novel negative finding: that structure-aware and ontology-enriched chunking does not improve retrieval for biomedical literature at any document length. Such a result would carry significant practical value by informing practitioners against unnecessary architectural complexity.
+
+### 6.7 Future Directions
 
 Several promising extensions emerge from this work:
 
