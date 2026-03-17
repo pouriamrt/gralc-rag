@@ -16,6 +16,7 @@ load_dotenv()
 
 UMLS_API_KEY: str = os.getenv("UMLS_API_KEY", "")
 OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
+NCBI_API_KEY: str = os.getenv("NCBI_API_KEY", "")
 
 # ---------------------------------------------------------------------------
 # Directory layout
@@ -27,7 +28,18 @@ RESULTS_DIR: Path = PROJECT_ROOT / "results"
 CORPUS_DIR: Path = DATA_DIR / "raw"
 PUBMEDQA_DIR: Path = DATA_DIR / "pubmedqa"
 
-for _dir in (DATA_DIR, RESULTS_DIR, CORPUS_DIR, PUBMEDQA_DIR):
+FULLTEXT_DIR: Path = DATA_DIR / "fulltext"
+FULLTEXT_RAW_DIR: Path = FULLTEXT_DIR / "raw"
+FULLTEXT_PARSED_DIR: Path = FULLTEXT_DIR / "parsed"
+FULLTEXT_CONDITIONS_DIR: Path = FULLTEXT_DIR / "conditions"
+FULLTEXT_BENCHMARK_DIR: Path = FULLTEXT_DIR / "benchmark"
+FULLTEXT_RESULTS_DIR: Path = RESULTS_DIR / "fulltext"
+
+for _dir in (
+    DATA_DIR, RESULTS_DIR, CORPUS_DIR, PUBMEDQA_DIR,
+    FULLTEXT_DIR, FULLTEXT_RAW_DIR, FULLTEXT_PARSED_DIR,
+    FULLTEXT_CONDITIONS_DIR, FULLTEXT_BENCHMARK_DIR, FULLTEXT_RESULTS_DIR,
+):
     _dir.mkdir(parents=True, exist_ok=True)
 
 # ---------------------------------------------------------------------------
