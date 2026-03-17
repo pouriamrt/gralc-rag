@@ -24,8 +24,8 @@ FIGURES_DIR = PROJECT_DIR / "figures"
 FIGURES_DIR.mkdir(exist_ok=True)
 RESULTS_DIR = PROJECT_DIR / "results" / "fulltext"
 
-CROSSOVER_PATH = RESULTS_DIR / "pubmedqa_crossover_results.json"
-SUMMARY_PATH = RESULTS_DIR / "fulltext_results_summary.json"
+CROSSOVER_PATH = RESULTS_DIR / "fulltext_retrieval_pubmedqa_summary.json"
+SUMMARY_PATH = RESULTS_DIR / "fulltext_retrieval_summary.json"
 
 # ── Publication style (matches generate_figures.py) ──
 plt.rcParams.update({
@@ -140,25 +140,24 @@ def _get_crossover_mrr() -> dict[str, dict[str, float | None]]:
         s: {"abstract": ABSTRACT_MRR[s]} for s in STRATEGY_KEYS
     }
 
-    # Try crossover results first
+    # Try crossover results first (list of dicts with strategy/condition/MRR)
     crossover = _load_json(CROSSOVER_PATH)
-    if crossover is not None:
-        for strategy in STRATEGY_KEYS:
-            sdata = crossover.get(strategy, {})
-            for cond in NON_ABSTRACT_CONDITIONS:
-                val = sdata.get(cond, {}).get("mrr")
-                mrr[strategy][cond] = val
+    if crossover is not None and isinstance(crossover, list) and len(crossover) > 0:
+        for entry in crossover:
+            strat = entry.get("strategy", "")
+            cond = entry.get("condition", "")
+            if strat in mrr and cond in NON_ABSTRACT_CONDITIONS:
+                mrr[strat][cond] = entry.get("MRR")
         return mrr
 
-    # Fallback to summary
+    # Fallback to summary (list of dicts with strategy/condition/MRR)
     summary = _load_json(SUMMARY_PATH)
-    if summary is not None:
-        for strategy in STRATEGY_KEYS:
-            sdata = summary.get(strategy, {})
-            for cond in NON_ABSTRACT_CONDITIONS:
-                cond_data = sdata.get(cond, {})
-                val = cond_data.get("mrr")
-                mrr[strategy][cond] = val
+    if summary is not None and isinstance(summary, list) and len(summary) > 0:
+        for entry in summary:
+            strat = entry.get("strategy", "")
+            cond = entry.get("condition", "")
+            if strat in mrr and cond in NON_ABSTRACT_CONDITIONS:
+                mrr[strat][cond] = entry.get("MRR")
         return mrr
 
     # No data available — fill with None
@@ -168,9 +167,19 @@ def _get_crossover_mrr() -> dict[str, dict[str, float | None]]:
     return mrr
 
 
-def _get_summary_data() -> dict | None:
-    """Load full-text results summary."""
-    return _load_json(SUMMARY_PATH)
+def _get_summary_data() -> dict[str, dict[str, dict]] | None:
+    """Load full-text results summary, indexed by (condition, strategy)."""
+    raw = _load_json(SUMMARY_PATH)
+    if raw is None:
+        return None
+    if isinstance(raw, list):
+        indexed: dict[str, dict[str, dict]] = {}
+        for entry in raw:
+            cond = entry.get("condition", "")
+            strat = entry.get("strategy", "")
+            indexed.setdefault(cond, {})[strat] = entry
+        return indexed
+    return raw
 
 
 # ════════════════════════════════════════════════════════════
@@ -252,9 +261,8 @@ def generate_fig7() -> None:
 
     if summary is not None:
         for i, strategy in enumerate(STRATEGY_KEYS):
-            sdata = summary.get(strategy, {})
             for j, cond in enumerate(NON_ABSTRACT_CONDITIONS):
-                cond_data = sdata.get(cond, {})
+                cond_data = summary.get(cond, {}).get(strategy, {})
                 val = cond_data.get("cross_section_recall")
                 if val is not None:
                     matrix[i, j] = val
@@ -328,10 +336,9 @@ def generate_fig8() -> None:
 
     if summary is not None:
         for strategy in STRATEGY_KEYS:
-            sdata = summary.get(strategy, {})
             for cond in NON_ABSTRACT_CONDITIONS:
-                cond_data = sdata.get(cond, {})
-                val = cond_data.get("section_coverage_at_5")
+                cond_data = summary.get(cond, {}).get(strategy, {})
+                val = cond_data.get("section_coverage@5") or cond_data.get("section_coverage_at_5")
                 coverage[strategy][cond] = val
                 if val is not None:
                     has_data = True
