@@ -10,17 +10,19 @@ from __future__ import annotations
 def cross_section_recall(
     retrieved_sections: list[list[str]],
     required_sections: list[list[str]],
+    k: int | None = None,
 ) -> float:
     """Compute cross-section recall averaged across queries.
 
-    For each query, a "hit" is scored if the retrieved chunks collectively
-    cover ALL required sections.  Binary per-query metric.
+    For each query, a "hit" is scored if the top-*k* retrieved chunks
+    collectively cover ALL required sections.  Binary per-query metric.
 
     Parameters:
         retrieved_sections: Per-query lists of section labels from retrieved
-            chunks.
+            chunks (ordered by retrieval rank).
         required_sections: Per-query lists of section labels that must all
             appear among the retrieved chunks.
+        k: Cutoff depth.  If ``None``, use all retrieved sections.
 
     Returns:
         Average in [0, 1].  Returns 0.0 for empty input.
@@ -32,7 +34,8 @@ def cross_section_recall(
     hits = 0
 
     for i in range(n):
-        covered = set(retrieved_sections[i])
+        sections = retrieved_sections[i][:k] if k is not None else retrieved_sections[i]
+        covered = set(sections)
         required = set(required_sections[i])
         if required and required.issubset(covered):
             hits += 1

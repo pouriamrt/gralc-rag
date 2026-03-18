@@ -67,7 +67,7 @@ STRATEGIES = [
     "gralc_rag_graph",
 ]
 DEFAULT_CONDITIONS = ["intro", "partial", "fulltext"]
-TOP_K = 10
+TOP_K = 20  # Retrieve top-20 to measure CS recall at k=5, 10, 20
 
 
 # ---------------------------------------------------------------------------
@@ -511,14 +511,18 @@ def _evaluate_retrieval(
         "per_query_rr": per_query_rr,
     }
 
-    # Cross-section metrics for template QA
+    # Cross-section metrics for template QA at multiple k values
     if is_template_qa and all_retrieved_sections:
-        cs_recall = cross_section_recall(
-            all_retrieved_sections, all_required_sections
-        )
-        sec_cov = section_coverage_at_k(all_retrieved_sections, k=5)
-        result["cross_section_recall"] = round(cs_recall, 4)
-        result["section_coverage@5"] = round(sec_cov, 4)
+        for k_val in (5, 10, 20):
+            cs_r = cross_section_recall(
+                all_retrieved_sections, all_required_sections, k=k_val
+            )
+            sec_c = section_coverage_at_k(all_retrieved_sections, k=k_val)
+            result[f"cross_section_recall@{k_val}"] = round(cs_r, 4)
+            result[f"section_coverage@{k_val}"] = round(sec_c, 4)
+        # Keep backward-compatible keys
+        result["cross_section_recall"] = result["cross_section_recall@5"]
+        result["section_coverage@5"] = result["section_coverage@5"]
 
     return result
 
@@ -630,22 +634,24 @@ def _print_summary(results: list[dict]) -> None:
     """Print a formatted summary table."""
     header = (
         f"{'Condition':<12s} {'Strategy':<22s} {'MRR':>7s} {'R@1':>7s} "
-        f"{'R@3':>7s} {'R@5':>7s} {'R@10':>7s} {'nDCG':>7s} "
-        f"{'CSR':>7s} {'SC@5':>7s} {'Found':>8s}"
+        f"{'R@5':>7s} {'nDCG':>7s} "
+        f"{'CSR@5':>7s} {'CSR@10':>8s} {'CSR@20':>8s} "
+        f"{'SC@5':>7s} {'SC@10':>7s} {'SC@20':>7s} {'Found':>8s}"
     )
     print("\n" + "=" * len(header))
     print(header)
     print("-" * len(header))
     for r in results:
-        csr = r.get("cross_section_recall", "")
-        sc5 = r.get("section_coverage@5", "")
-        csr_str = f"{csr:7.4f}" if isinstance(csr, float) else f"{'--':>7s}"
-        sc5_str = f"{sc5:7.4f}" if isinstance(sc5, float) else f"{'--':>7s}"
+        def _fmt(key: str) -> str:
+            v = r.get(key, "")
+            return f"{v:7.4f}" if isinstance(v, (int, float)) else f"{'--':>7s}"
         print(
             f"{r.get('condition', ''):12s} {r['strategy']:<22s} "
-            f"{r['MRR']:7.4f} {r['Recall@1']:7.4f} {r['Recall@3']:7.4f} "
-            f"{r['Recall@5']:7.4f} {r['Recall@10']:7.4f} "
-            f"{r.get('nDCG@10', 0):7.4f} {csr_str} {sc5_str} "
+            f"{r['MRR']:7.4f} {r['Recall@1']:7.4f} "
+            f"{r['Recall@5']:7.4f} "
+            f"{r.get('nDCG@10', 0):7.4f} "
+            f"{_fmt('cross_section_recall@5')} {_fmt('cross_section_recall@10'):>8s} {_fmt('cross_section_recall@20'):>8s} "
+            f"{_fmt('section_coverage@5')} {_fmt('section_coverage@10')} {_fmt('section_coverage@20')} "
             f"{r['n_found']:>4d}/{r['n_questions']}"
         )
     print("=" * len(header))
