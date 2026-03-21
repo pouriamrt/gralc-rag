@@ -257,7 +257,7 @@ Structure-Aware (no KG)          & 0.9765 & 0.9660 & 0.9850 & 0.9890 & 0.9940 \\
 \end{tabular}
 \end{table}
 
-All strategies achieve high retrieval performance (MRR~$>$~0.95), reflecting a near-ceiling effect. Semantic chunking achieves the highest MRR (0.9802). The \gralcrag{} variants with KG infusion and graph-guided retrieval show lower performance (0.9687 and 0.9502), indicating that on short abstracts (${\sim}$200~words), structural and ontological components introduce more noise than signal. Figure~\ref{fig:mrr} visualizes these differences.
+All strategies achieve high retrieval performance (MRR~$>$~0.95), reflecting a near-ceiling effect. Semantic chunking achieves the highest MRR (0.9802). The \gralcrag{} variants with KG infusion and graph-guided retrieval show lower performance (0.9687 and 0.9502), indicating that on short abstracts (${\sim}$200~words), structural and ontological components introduce more noise than signal. Figure~\ref{fig:mrr} visualizes these differences. Figure~\ref{fig:recall} shows Recall@$k$ across retrieval depths, where performance converges at higher~$k$ with all methods exceeding 0.99 at $k\!=\!10$.
 
 \begin{figure}[t]
 \centering
@@ -301,7 +301,7 @@ Late Chunking (base)             & 0.9768 & 0.9660 & 0.9920 & ---    \\
 \label{fig:ablation}
 \end{figure}
 
-Structure-aware boundaries have negligible impact on short texts ($\Delta$\,MRR = $-$0.0003). KG infusion degrades performance ($\Delta$\,MRR = $-$0.0081), suggesting the fusion weight $\lambda\!=\!0.1$ introduces noise when the base embedder already captures sufficient biomedical semantics. Graph-guided retrieval produces the largest degradation ($\Delta$\,MRR = $-$0.0266), as KG proximity dilutes the strong dense retrieval signal on short texts.
+Structure-aware boundaries have negligible impact on short texts ($\Delta$\,MRR = $-$0.0003). KG infusion degrades performance ($\Delta$\,MRR = $-$0.0081), suggesting the fusion weight $\lambda\!=\!0.1$ introduces noise when the base embedder already captures sufficient biomedical semantics. Graph-guided retrieval produces the largest degradation ($\Delta$\,MRR = $-$0.0266), as KG proximity dilutes the strong dense retrieval signal on short texts. Figure~\ref{fig:ablation} visualizes this incremental degradation.
 
 \subsection{Efficiency Analysis}
 
@@ -534,233 +534,13 @@ These findings yield three contributions to the field: (1)~structural coverage m
 % ══════════════════════════════════════════════════════════════
 \small
 \bibliographystyle{unsrtnat}
+\bibliography{references}
 
-\begin{thebibliography}{45}
 
-\bibitem{canese2013pubmed}
-K.~Canese and S.~Weis,
-``PubMed: The bibliographic database,''
-in \emph{The NCBI Handbook}, 2nd~ed. NCBI, 2013.
 
-\bibitem{ji2023survey}
-Z.~Ji \etal,
-``Survey of hallucination in natural language generation,''
-\emph{ACM Computing Surveys}, vol.~55, no.~12, pp.~1--38, 2023.
 
-\bibitem{huang2025survey}
-L.~Huang \etal,
-``A survey on hallucination in large language models,''
-\emph{ACM Computing Surveys}, 2025.
 
-\bibitem{lewis2020retrieval}
-P.~Lewis \etal,
-``Retrieval-augmented generation for knowledge-intensive NLP tasks,''
-in \emph{Advances in NeurIPS}, vol.~33, pp.~9459--9474, 2020.
 
-\bibitem{gao2024retrieval}
-Y.~Gao \etal,
-``Retrieval-augmented generation for large language models: A survey,''
-\emph{arXiv:2312.10997}, 2024.
-
-\bibitem{merola2025reconstructing}
-C.~Merola and J.~Singh,
-``Reconstructing context: Evaluating advanced chunking strategies for RAG,''
-\emph{arXiv:2504.19754}, 2025.
-
-\bibitem{sollaci2004imrad}
-L.~B. Sollaci and M.~G. Pereira,
-``The introduction, methods, results, and discussion (IMRAD) structure: A fifty-year survey,''
-\emph{J. Med. Libr. Assoc.}, vol.~92, no.~3, pp.~364--367, 2004.
-
-\bibitem{gunther2024late}
-M.~G{\"u}nther, I.~Mohr, B.~Wang, and H.~Xiao,
-``Late chunking: Contextual chunk embeddings using long-context embedding models,''
-\emph{arXiv:2409.04701}, 2024.
-
-\bibitem{edge2024local}
-D.~Edge \etal,
-``From local to global: A graph RAG approach to query-focused summarization,''
-\emph{arXiv:2404.16130}, 2024.
-
-\bibitem{peng2024graph}
-B.~Peng \etal,
-``Graph retrieval-augmented generation: A survey,''
-\emph{ACM Trans. Inf. Syst.}, 2024.
-
-\bibitem{han2025graphrag}
-H.~Han \etal,
-``Retrieval-augmented generation with graphs (GraphRAG),''
-\emph{arXiv:2501.00309}, 2025.
-
-\bibitem{karpukhin2020dense}
-V.~Karpukhin \etal,
-``Dense passage retrieval for open-domain question answering,''
-in \emph{Proc. EMNLP}, pp.~6769--6781, 2020.
-
-\bibitem{santhanam2022colbertv2}
-K.~Santhanam, O.~Khattab, J.~Saad-Falcon, C.~Potts, and M.~Zaharia,
-``ColBERTv2: Effective and efficient retrieval via lightweight late interaction,''
-in \emph{Proc. NAACL}, pp.~3715--3734, 2022.
-
-\bibitem{xiong2024benchmarking}
-G.~Xiong, Q.~Jin, Z.~Lu, and A.~Zhang,
-``Benchmarking retrieval-augmented generation for medicine,''
-in \emph{Findings of ACL}, 2024.
-
-\bibitem{zhao2025moc}
-J.~Zhao \etal,
-``MoC: Mixtures of text chunking learners for RAG systems,''
-\emph{arXiv:2503.09600}, 2025.
-
-\bibitem{chen2023dense}
-S.~Chen, Y.~Zhao, S.~Joty, and Z.~Cai,
-``Dense X retrieval: What retrieval granularity should we use?''
-\emph{arXiv:2312.06648}, 2023.
-
-\bibitem{maina2025comparative}
-M.~M. Maina \etal,
-``Comparative evaluation of advanced chunking for RAG in LLMs for clinical decision support,''
-\emph{Bioengineering}, vol.~12, no.~11, p.~1194, 2025.
-
-\bibitem{verma2025s2}
-P.~Verma,
-``S2 Chunking: A hybrid framework for document segmentation,''
-\emph{arXiv:2501.05485}, 2025.
-
-\bibitem{allamraju2025breaking}
-A.~Allamraju \etal,
-``Breaking it down: Domain-aware semantic segmentation for RAG,''
-\emph{arXiv:2512.00367}, 2025.
-
-\bibitem{wu2025sitemb}
-J.~Wu \etal,
-``SitEmb-v1.5: Improved context-aware dense retrieval,''
-\emph{arXiv:2508.01959}, 2025.
-
-\bibitem{guo2024lightrag}
-Z.~Guo, L.~Xia, Y.~Yu, T.~Ao, and C.~Huang,
-``LightRAG: Simple and fast retrieval-augmented generation,''
-in \emph{Findings of EMNLP}, 2025.
-
-\bibitem{chen2025pathrag}
-B.~Chen \etal,
-``PathRAG: Pruning graph-based RAG with relational paths,''
-\emph{arXiv:2502.14902}, 2025.
-
-\bibitem{xu2025noderag}
-T.~Xu \etal,
-``NodeRAG: Structuring graph-based RAG with heterogeneous nodes,''
-\emph{arXiv:2504.11544}, 2025.
-
-\bibitem{wu2024medgraphrag}
-J.~Wu, J.~Zhu, and Y.~Qi,
-``Medical Graph RAG: Towards safe medical LLM via graph RAG,''
-in \emph{Proc. ACL}, 2025.
-
-\bibitem{matsumoto2024kragen}
-T.~Matsumoto, S.~Moran, \etal,
-``KRAGEN: A knowledge graph-enhanced RAG framework for biomedical problem solving,''
-\emph{Bioinformatics}, vol.~40, no.~6, btae353, 2024.
-
-\bibitem{soman2024biomedical}
-K.~Soman \etal,
-``Biomedical knowledge graph-optimized prompt generation for LLMs,''
-\emph{Bioinformatics}, vol.~40, no.~9, btae560, 2024.
-
-\bibitem{bodenreider2004umls}
-O.~Bodenreider,
-``The Unified Medical Language System (UMLS): Integrating biomedical terminology,''
-\emph{Nucleic Acids Research}, vol.~32, pp.~D267--D270, 2004.
-
-\bibitem{liu2021self}
-F.~Liu, E.~Shareghi, Z.~Meng, M.~Basaldella, and N.~Collier,
-``Self-alignment pretraining for biomedical entity representations,''
-in \emph{Proc. NAACL}, pp.~4228--4238, 2021.
-
-\bibitem{gu2021domain}
-Y.~Gu \etal,
-``Domain-specific language model pretraining for biomedical NLP,''
-\emph{ACM Trans. Comput. Healthcare}, vol.~3, no.~1, pp.~1--23, 2021.
-
-\bibitem{remy2023biolord}
-F.~Remy, K.~Demuynck, and T.~Demeester,
-``BioLORD-2023: Semantic textual representations fusing LLM and clinical KG insights,''
-\emph{arXiv:2311.16075}, 2023.
-
-\bibitem{munikoti2023atlantic}
-S.~Munikoti, A.~Acharya, S.~Wagle, and S.~Horawalavithana,
-``ATLANTIC: Structure-aware retrieval-augmented language model for interdisciplinary science,''
-\emph{arXiv:2311.12289}, 2023.
-
-\bibitem{velickovic2018graph}
-P.~Veli\v{c}kovi\'{c}, G.~Cucurull, A.~Casanova, A.~Romero, P.~Li\`{o}, and Y.~Bengio,
-``Graph attention networks,''
-in \emph{Proc. ICLR}, 2018.
-
-\bibitem{jin2019pubmedqa}
-Q.~Jin, B.~Dhingra, Z.~Liu, W.~W. Cohen, and X.~Lu,
-``PubMedQA: A dataset for biomedical research question answering,''
-in \emph{Proc. EMNLP-IJCNLP}, pp.~2567--2577, 2019.
-
-\bibitem{soldaini2016quickumls}
-L.~Soldaini and N.~Goharian,
-``QuickUMLS: A fast, unsupervised approach for medical concept extraction,''
-in \emph{MedIR Workshop, SIGIR}, 2016.
-
-\bibitem{yang2025heterag}
-P.~Yang \etal,
-``HeteRAG: A heterogeneous RAG framework with decoupled knowledge representations,''
-\emph{arXiv:2504.10529}, 2025.
-
-\bibitem{zhang2025medkgent}
-D.~Zhang \etal,
-``MedKGent: A LLM agent framework for constructing temporally evolving medical KG,''
-\emph{arXiv:2508.12393}, 2025.
-
-\bibitem{honovich2022true}
-O.~Honovich \etal,
-``TRUE: Re-evaluating factual consistency evaluation,''
-in \emph{Proc. NAACL}, pp.~3905--3920, 2022.
-
-\bibitem{lopez2009grobid}
-P.~Lopez,
-``GROBID: Combining automatic bibliographic data recognition and term extraction,''
-in \emph{Proc. ECDL}, pp.~473--474, 2009.
-
-\bibitem{neumann2019scispacy}
-M.~Neumann, D.~King, I.~Beltagy, and W.~Ammar,
-``ScispaCy: Fast and robust models for biomedical NLP,''
-in \emph{Proc. BioNLP}, pp.~319--327, 2019.
-
-\bibitem{nelson2019spoke}
-C.~A. Nelson, A.~J. Butte, and S.~E. Baranzini,
-``Integrating biomedical research and EHRs to create knowledge-based embeddings,''
-\emph{Nature Communications}, vol.~10, no.~1, p.~3045, 2019.
-
-\bibitem{anthropic2024contextual}
-Anthropic,
-``Introducing contextual retrieval,''
-Anthropic Blog, 2024.
-
-\bibitem{tsatsaronis2015bioasq}
-G.~Tsatsaronis \etal,
-``An overview of the BioASQ large-scale biomedical semantic indexing and QA competition,''
-\emph{BMC Bioinformatics}, vol.~16, no.~1, p.~138, 2015.
-
-\bibitem{rubin2023long}
-O.~Rubin and J.~Berant,
-``Long-range language modeling with self-retrieval,''
-\emph{arXiv:2306.13421}, 2023.
-
-\bibitem{jiang2023active}
-Z.~Jiang \etal,
-``Active retrieval augmented generation,''
-in \emph{Proc. EMNLP}, 2023.
-
-\bibitem{lin2025biographfusion}
-Y.~Lin \etal,
-``BioGraphFusion: Graph knowledge embedding for biological completion and reasoning,''
-\emph{arXiv:2507.14468}, 2025.
 
 \end{thebibliography}
 
