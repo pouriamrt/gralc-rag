@@ -51,6 +51,54 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 log = logging.getLogger(__name__)
 
 STRATEGIES_SIMPLE = ["naive", "semantic", "late_chunking", "structure_aware"]
+ALL_STRATEGIES = [
+    "naive", "semantic", "late_chunking", "structure_aware",
+    "gralc_rag", "gralc_rag_graph",
+]
+
+
+def _graph_rerank(
+    results: list[tuple[dict, float]],
+    query_text: str,
+    entity_linker: "SimpleEntityLinker",
+    entity_embeddings: dict[str, np.ndarray],
+    chunk_entity_map: dict[int, list[str]],
+    beta: float,
+    top_k: int = 5,
+) -> list[tuple[dict, float]]:
+    """Re-rank search results using graph-guided entity similarity."""
+    q_ents = entity_linker.find_entities(query_text)
+    q_ent_names = [e["text"] for e in q_ents]
+
+    reranked = []
+    for meta, dense_score in results:
+        chunk_idx = meta.get("chunk_idx", -1)
+        c_ent_names = chunk_entity_map.get(chunk_idx, [])
+
+        if q_ent_names and c_ent_names:
+            sims = []
+            for qe in q_ent_names:
+                if qe not in entity_embeddings:
+                    continue
+                qe_emb = entity_embeddings[qe]
+                max_sim = 0.0
+                for ce in c_ent_names:
+                    if ce in entity_embeddings:
+                        ce_emb = entity_embeddings[ce]
+                        sim = float(
+                            np.dot(qe_emb, ce_emb)
+                            / (np.linalg.norm(qe_emb) * np.linalg.norm(ce_emb) + 1e-8)
+                        )
+                        max_sim = max(max_sim, sim)
+                sims.append(max_sim)
+            kg_prox = sum(sims) / len(sims) if sims else 0.0
+        else:
+            kg_prox = 0.0
+
+        hybrid = beta * dense_score + (1 - beta) * kg_prox
+        reranked.append((meta, hybrid))
+
+    return sorted(reranked, key=lambda x: x[1], reverse=True)[:top_k]
 
 
 def _load_condition_corpus(condition: str) -> list[dict]:
@@ -150,10 +198,15 @@ def main():
         log.error("No questions found matching corpus. Run 07_generate_crosssection_qa.py first.")
         sys.exit(1)
 
-    # Build indices for each strategy
-    strategies_to_eval = ["naive", "semantic", "structure_aware", "gralc_rag"]
+    # Build indices for each strategy — all 6 strategies
+    strategies_to_eval = ALL_STRATEGIES
 
     all_results: list[dict] = []
+
+    # Shared state for gralc_rag / gralc_rag_graph (built once, reused)
+    gralc_index = None
+    gralc_proj_embs: dict[str, np.ndarray] = {}
+    gralc_chunk_entity_map: dict[int, list[str]] = {}
 
     for strategy in strategies_to_eval:
         checkpoint_path = FULLTEXT_RESULTS_DIR / f"generation_{args.condition}_{strategy}.json"
@@ -166,6 +219,8 @@ def main():
         log.info("=== Generation: %s ===", strategy)
         log.info("Building %s index...", strategy)
         t0 = time.time()
+
+        use_graph_rerank = False
 
         if strategy in STRATEGIES_SIMPLE:
             chunks: list[Chunk] = []
@@ -184,40 +239,49 @@ def main():
             chunks = _embed_chunks_batch(chunks, model)
             index = _build_index(chunks, EMBEDDING_DIM)
 
-        elif strategy == "gralc_rag":
-            all_entity_names: set[str] = set()
-            for doc in corpus:
-                for e in entity_linker.find_entities(doc["text"]):
-                    all_entity_names.add(e["text"])
-            if all_entity_names:
-                sapbert_embs = load_sapbert_embeddings(list(all_entity_names))
-                proj_embs = project_embeddings(sapbert_embs, target_dim=EMBEDDING_DIM)
-            else:
-                proj_embs = {}
+        elif strategy in ("gralc_rag", "gralc_rag_graph"):
+            # Build index once for both gralc_rag and gralc_rag_graph
+            if gralc_index is None:
+                all_entity_names: set[str] = set()
+                for doc in corpus:
+                    for e in entity_linker.find_entities(doc["text"]):
+                        all_entity_names.add(e["text"])
+                if all_entity_names:
+                    sapbert_embs = load_sapbert_embeddings(list(all_entity_names))
+                    gralc_proj_embs = project_embeddings(sapbert_embs, target_dim=EMBEDDING_DIM)
+                else:
+                    gralc_proj_embs = {}
 
-            chunks = []
-            cidx = 0
-            for doc in corpus:
-                entity_spans = entity_linker.get_entity_spans(doc["text"])
-                cs = structure_aware_chunk(doc["article"], model=model, tokenizer=tokenizer,
-                                           entity_spans=entity_spans)
-                for c in cs:
-                    if c.embedding is None:
+                chunks = []
+                cidx = 0
+                for doc in corpus:
+                    entity_spans = entity_linker.get_entity_spans(doc["text"])
+                    cs = structure_aware_chunk(doc["article"], model=model, tokenizer=tokenizer,
+                                               entity_spans=entity_spans)
+                    for c in cs:
+                        if c.embedding is None:
+                            cidx += 1
+                            continue
+                        # Track entity map for graph re-ranking
+                        c_ents = entity_linker.find_entities(c.text)
+                        ent_names = [e["text"] for e in c_ents]
+                        gralc_chunk_entity_map[cidx] = ent_names
+
+                        if ent_names and gralc_proj_embs:
+                            ent_vecs = [gralc_proj_embs[n] for n in ent_names if n in gralc_proj_embs]
+                            if ent_vecs:
+                                avg_ent = np.mean(ent_vecs, axis=0)
+                                enriched = c.embedding + 0.1 * avg_ent
+                                enriched = enriched / (np.linalg.norm(enriched) + 1e-8)
+                                c = Chunk(text=c.text, embedding=enriched,
+                                          metadata={**c.metadata, "strategy": "gralc_rag", "chunk_idx": cidx})
+                        chunks.append(c)
                         cidx += 1
-                        continue
-                    c_ents = entity_linker.find_entities(c.text)
-                    ent_names = [e["text"] for e in c_ents]
-                    if ent_names and proj_embs:
-                        ent_vecs = [proj_embs[n] for n in ent_names if n in proj_embs]
-                        if ent_vecs:
-                            avg_ent = np.mean(ent_vecs, axis=0)
-                            enriched = c.embedding + 0.1 * avg_ent
-                            enriched = enriched / (np.linalg.norm(enriched) + 1e-8)
-                            c = Chunk(text=c.text, embedding=enriched,
-                                      metadata={**c.metadata, "strategy": "gralc_rag", "chunk_idx": cidx})
-                    chunks.append(c)
-                    cidx += 1
-            index = _build_index(chunks, EMBEDDING_DIM)
+                gralc_index = _build_index(chunks, EMBEDDING_DIM)
+
+            index = gralc_index
+            if strategy == "gralc_rag_graph":
+                use_graph_rerank = True
 
         elapsed = time.time() - t0
         log.info("  Index built in %.1fs (%d chunks)", elapsed, index.size)
@@ -229,7 +293,20 @@ def main():
 
         for i, q in enumerate(questions):
             query_emb = model.encode(q["question"], normalize_embeddings=True)
-            results = index.search(query_emb, top_k=5)
+            # Retrieve more for re-ranking if graph strategy
+            search_k = 20 if use_graph_rerank else 5
+            results = index.search(query_emb, top_k=search_k)
+
+            # Apply graph-guided re-ranking for gralc_rag_graph
+            if use_graph_rerank:
+                results = _graph_rerank(
+                    results, q["question"], entity_linker,
+                    gralc_proj_embs, gralc_chunk_entity_map,
+                    beta=KG_WEIGHT_BETA, top_k=5,
+                )
+            else:
+                results = results[:5]
+
             contexts = [meta.get("text", "") for meta, _ in results]
             sections_retrieved = [meta.get("section_title", "") for meta, _ in results]
             section_diversity.append(len(set(sections_retrieved)))
@@ -241,8 +318,6 @@ def main():
                     api_key=OPENAI_API_KEY,
                     model=OPENAI_MODEL,
                 )
-                # For cross-section QA, measure F1 against the question text itself
-                # since we don't have gold answers — higher F1 = more relevant context
                 f1 = answer_f1(answer["full_answer"], q["question"])
                 f1_scores.append(f1)
                 total_tokens += answer.get("usage_tokens", 0)
