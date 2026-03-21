@@ -1,0 +1,9 @@
+{
+  "strategy": "naive",
+  "condition": "fulltext",
+  "avg_f1": 0.3891,
+  "avg_section_diversity": 1.0,
+  "n_questions": 50,
+  "total_tokens": 169466,
+  "model": "gpt-4o-mini"
+}

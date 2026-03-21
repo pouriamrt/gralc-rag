@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 # ---------------------------------------------------------------------------
 # Environment
 # ---------------------------------------------------------------------------
-load_dotenv()
+load_dotenv(override=True)
 
 UMLS_API_KEY: str = os.getenv("UMLS_API_KEY", "")
 OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
