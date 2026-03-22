@@ -1,9 +1,0 @@
-{
-  "strategy": "semantic",
-  "condition": "fulltext",
-  "avg_f1": 0.4026,
-  "avg_section_diversity": 1.0,
-  "n_questions": 50,
-  "total_tokens": 29748,
-  "model": "gpt-4o-mini"
-}

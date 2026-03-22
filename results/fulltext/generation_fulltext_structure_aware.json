@@ -1,9 +1,0 @@
-{
-  "strategy": "structure_aware",
-  "condition": "fulltext",
-  "avg_f1": 0.381,
-  "avg_section_diversity": 4.48,
-  "n_questions": 50,
-  "total_tokens": 86060,
-  "model": "gpt-4o-mini"
-}
