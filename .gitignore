@@ -15,15 +15,8 @@ build/
 *.bin
 *.faiss
 
-# Paper materials (tracked locally on master, excluded from remote)
-paper.tex
-paper.pdf
-paper.md
-references.bib
-figures/
-sn-jnl.cls
-sn-basic.bst
-check_refs.py
+# Paper (local only)
+paper/
 
 # LaTeX auxiliary files
 *.aux

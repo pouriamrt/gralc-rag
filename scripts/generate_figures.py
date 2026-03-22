@@ -9,7 +9,7 @@ import matplotlib.ticker as mticker
 import numpy as np
 from pathlib import Path
 
-FIGURES_DIR = Path(__file__).resolve().parent.parent / "figures"
+FIGURES_DIR = Path(__file__).resolve().parent.parent / "paper" / "figures"
 FIGURES_DIR.mkdir(exist_ok=True)
 
 # Publication style
