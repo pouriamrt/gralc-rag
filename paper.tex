@@ -1,45 +1,24 @@
-\documentclass[11pt,a4paper]{article}
+%%
+%% Springer Nature LaTeX template -- Scientific Reports
+%% Reference style: sn-basic (numbered)
+%%
+%% IMPORTANT: This file requires sn-jnl.cls and sn-basic.bst from
+%% the Springer Nature LaTeX template, available at:
+%%   https://www.overleaf.com/latex/templates/springer-nature-latex-template/gsvvftmrppwq
+%%   or https://www.springernature.com/gp/authors/campaigns/latex-author-support
+%%
 
-% ── Encoding & fonts ──
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
-\usepackage{mathptmx}          % Times Roman
-\usepackage{microtype}
+\documentclass[sn-basic]{sn-jnl}
 
-% ── Layout ──
-\usepackage[margin=2.5cm]{geometry}
-\usepackage{setspace}
-\onehalfspacing
-\usepackage{parskip}
-
-% ── Math ──
-\usepackage{amsmath,amssymb,amsfonts}
-
-% ── Tables & figures ──
-\usepackage{booktabs}
-\usepackage{graphicx}
-\usepackage{float}
-\usepackage{multirow}
-\usepackage{caption}
-\captionsetup{font=small,labelfont=bf}
-
-% ── Lists ──
-\usepackage{enumitem}
-
-% ── Colors & hyperlinks ──
+%% ── Packages required by sn-jnl.cls ──
 \usepackage[dvipsnames]{xcolor}
-\usepackage[colorlinks=true,linkcolor=blue!70!black,citecolor=blue!70!black,urlcolor=blue!60!black]{hyperref}
+\usepackage{manyfoot}
+%% ── Additional packages ──
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{booktabs}
+\usepackage{multirow}
 
-% ── Bibliography ──
-\usepackage[numbers,sort&compress]{natbib}
-
-% ── Compact sections ──
-\usepackage{titlesec}
-\titlespacing*{\section}{0pt}{1.5ex plus .5ex minus .2ex}{1ex plus .2ex}
-\titlespacing*{\subsection}{0pt}{1.2ex plus .4ex minus .2ex}{0.8ex plus .2ex}
-\titlespacing*{\subsubsection}{0pt}{1ex plus .3ex minus .1ex}{0.6ex plus .1ex}
-
-% ── Custom commands ──
+%% ── Custom commands ──
 \newcommand{\gralcrag}{GraLC-RAG}
 \newcommand{\ie}{\textit{i.e.}}
 \newcommand{\eg}{\textit{e.g.}}
@@ -48,27 +27,28 @@
 % ══════════════════════════════════════════════════════════════
 \begin{document}
 
-% ── Title ──
-\title{\textbf{Graph-Aware Late Chunking for Retrieval-Augmented\\Generation in Biomedical Literature}}
+\title[Graph-Aware Late Chunking for RAG in Biomedical Literature]{Graph-Aware Late Chunking for Retrieval-Augmented Generation in Biomedical Literature}
 
-\author{
-  [Author Names]\\
-  \textit{[Institution]}\\
-  \texttt{[email]}
-}
+%% ── Authors ──
+\author*[1,2]{\fnm{Pouria} \sur{Mortezaagha}}\email{pmortezaagha@ohri.ca}
 
-\date{}
+\author[1,2]{\fnm{Arya} \sur{Rahgozar}}
+
+%% ── Affiliations ──
+\affil*[1]{\orgdiv{Methodological Implementation Research}, \orgname{Ottawa Hospital Research Institute}, \orgaddress{\city{Ottawa}, \state{ON}, \country{Canada}}}
+
+\affil[2]{\orgdiv{School of Engineering Design and Teaching Innovation}, \orgname{University of Ottawa}, \orgaddress{\city{Ottawa}, \state{ON}, \country{Canada}}}
+
+%% ── Abstract ──
+\abstract{Retrieval-Augmented Generation (RAG) systems for biomedical literature are typically evaluated using ranking metrics like Mean Reciprocal Rank (MRR), which measure how well the system identifies the single most relevant chunk. We argue that for full-text scientific documents, this evaluation paradigm is fundamentally incomplete: it rewards retrieval \emph{precision} while ignoring retrieval \emph{breadth}: the ability to surface evidence from across a document's structural sections. To investigate this blind spot, we propose \textbf{\gralcrag{}} (Graph-aware Late Chunking for Retrieval-Augmented Generation), a framework that unifies late chunking with graph-aware structural intelligence for biomedical literature retrieval. \gralcrag{} introduces structure-aware chunk boundary detection using document structure graphs, knowledge graph infusion via UMLS ontological signals, and graph-guided hybrid retrieval. We evaluate six retrieval strategies on 2{,}359 IMRaD-filtered PubMed Central articles across a document-length gradient using 2{,}033 cross-section questions and two complementary metric families: standard ranking metrics (MRR, Recall@$k$) and structural coverage metrics (SecCov@$k$, CS~Recall). Our results expose a sharp divergence: content-similarity methods (semantic chunking) achieve the highest MRR (0.517 on full-text) but are structurally blind, always retrieving from a single section (SecCov\,=\,1.0). Structure-aware methods achieve lower MRR but retrieve from up to 15.6$\times$ more document sections (SecCov@20\,=\,15.57). Generation experiments across all six strategies show that KG-infused retrieval narrows the answer-quality gap to $\Delta$F1\,=\,0.009 (0.394 vs.\ 0.403) while maintaining 4.6$\times$ section diversity, partially bridging the retrieval-to-generation gap. These findings demonstrate that standard evaluation metrics systematically undervalue structural retrieval methods and that fully closing the multi-section synthesis gap is a key open problem for biomedical RAG.}
+
+%% ── Keywords ──
+\keywords{Retrieval-augmented generation, Late chunking, Knowledge graphs, Biomedical NLP, Evaluation methodology, Structural retrieval, UMLS}
+
 \maketitle
 
 % ══════════════════════════════════════════════════════════════
-\begin{abstract}
-Retrieval-Augmented Generation (RAG) systems for biomedical literature are typically evaluated using ranking metrics like Mean Reciprocal Rank (MRR), which measure how well the system identifies the single most relevant chunk. We argue that for full-text scientific documents, this evaluation paradigm is fundamentally incomplete: it rewards retrieval \emph{precision} while ignoring retrieval \emph{breadth}: the ability to surface evidence from across a document's structural sections. To investigate this blind spot, we propose \textbf{\gralcrag{}} (Graph-aware Late Chunking for Retrieval-Augmented Generation), a framework that unifies late chunking with graph-aware structural intelligence for biomedical literature retrieval. \gralcrag{} introduces structure-aware chunk boundary detection using document structure graphs, knowledge graph infusion via UMLS ontological signals, and graph-guided hybrid retrieval. We evaluate six retrieval strategies on 2{,}359 IMRaD-filtered PubMed Central articles across a document-length gradient using 2{,}033 cross-section questions and two complementary metric families: standard ranking metrics (MRR, Recall@$k$) and structural coverage metrics (SecCov@$k$, CS~Recall). Our results expose a sharp divergence: content-similarity methods (semantic chunking) achieve the highest MRR (0.517 on full-text) but are structurally blind, always retrieving from a single section (SecCov\,=\,1.0). Structure-aware methods achieve lower MRR but retrieve from up to 15.6$\times$ more document sections (SecCov@20\,=\,15.57). Generation experiments across all six strategies show that KG-infused retrieval narrows the answer-quality gap to $\Delta$F1\,=\,0.009 (0.394 vs.\ 0.403) while maintaining 4.6$\times$ section diversity, partially bridging the retrieval-to-generation gap. These findings demonstrate that standard evaluation metrics systematically undervalue structural retrieval methods and that fully closing the multi-section synthesis gap is a key open problem for biomedical RAG.
-
-\smallskip\noindent\textbf{Keywords:} retrieval-augmented generation, late chunking, knowledge graphs, biomedical NLP, evaluation methodology, structural retrieval, UMLS
-\end{abstract}
-
-% ══════════════════════════════════════════════════════════════
-\section{Introduction}
+\section{Introduction}\label{sec:introduction}
 
 The exponential growth of biomedical literature, with over 1.5~million articles indexed annually in PubMed alone, has created an urgent need for intelligent retrieval and synthesis systems~\cite{canese2013pubmed}. Large language models (LLMs) have demonstrated remarkable capabilities in natural language understanding and generation, yet they remain prone to hallucination and factual inconsistency when applied to knowledge-intensive biomedical tasks~\cite{ji2023survey,huang2025survey}. Retrieval-Augmented Generation (RAG), which grounds LLM outputs in retrieved external evidence, has emerged as a principled solution to this challenge~\cite{lewis2020retrieval,gao2024retrieval}.
 
@@ -80,7 +60,7 @@ We identify a critical gap at the intersection of these two paradigms: no existi
 
 In this paper, we make three contributions that span framework design, evaluation methodology, and empirical analysis:
 
-\begin{enumerate}[leftmargin=*,itemsep=2pt]
+\begin{enumerate}
   \item \textbf{\gralcrag{}: A structure-aware late chunking framework.} We propose \gralcrag{} (Graph-aware Late Chunking for Retrieval-Augmented Generation), which integrates document structure graphs for chunk boundary detection, UMLS knowledge graph signals for token-level enrichment, and graph-guided hybrid retrieval. This provides a unified testbed for investigating whether combining context-preserving late chunking with structure-aware GraphRAG yields measurable retrieval improvements.
 
   \item \textbf{A structural coverage evaluation methodology.} We introduce Section Coverage@$k$ (SecCov@$k$) and Cross-Section Recall (CS~Recall) as complementary metrics that capture retrieval breadth (the ability to surface evidence from multiple document sections), which standard ranking metrics like MRR entirely miss.
@@ -91,7 +71,7 @@ In this paper, we make three contributions that span framework design, evaluatio
 Our experiments reveal a surprising finding: the methods that achieve the highest ranking accuracy retrieve from only a single document section, while structure-aware methods that rank lower on MRR surface evidence from up to 15.6$\times$ more sections. Generation experiments across all six strategies show that KG-infused retrieval narrows the answer-quality gap to just $\Delta$F1\,=\,0.009 while maintaining 4.6$\times$ section diversity, partially bridging the retrieval-to-generation gap, though multi-section synthesis remains an open challenge.
 
 % ══════════════════════════════════════════════════════════════
-\section{Related Work}
+\section{Related Work}\label{sec:related}
 
 \subsection{Retrieval-Augmented Generation}
 
@@ -116,30 +96,30 @@ In the biomedical domain, MedGraphRAG~\cite{wu2024medgraphrag} employs hierarchi
 UMLS~\cite{bodenreider2004umls} integrates over 200 source vocabularies with approximately 4.5~million concepts and 15~million relations. SapBERT~\cite{liu2021self} aligns UMLS synonyms in embedding space for biomedical entity linking. PubMedBERT~\cite{gu2021domain} provides domain-specific pre-training. BioLORD-2023~\cite{remy2023biolord} leverages UMLS synonym sets and LLM descriptions for state-of-the-art biomedical sentence embeddings. ATLANTIC~\cite{munikoti2023atlantic} fuses graph and text embeddings for scientific retrieval at the document level. The intersection of knowledge graph embeddings with \emph{chunk-level} retrieval for biomedical RAG remains unexplored.
 
 % ══════════════════════════════════════════════════════════════
-\section{\gralcrag{}: Graph-Aware Late Chunking for RAG}
+\section{Methods}\label{sec:methods}
 
-\subsection{Framework Overview}
+\subsection{\gralcrag{} Framework}\label{sec:framework}
+
+\subsubsection{Framework Overview}\label{sec:overview}
 
 \gralcrag{} extends late chunking with graph-aware structural intelligence at three levels: chunk boundary detection, token representation enrichment, and retrieval re-ranking. Figure~\ref{fig:architecture} illustrates the complete pipeline. Given a biomedical document~$D$, the framework proceeds through five stages: (1)~document parsing and graph construction, (2)~full-document encoding, (3)~knowledge graph infusion, (4)~structure-aware chunk boundary detection, and (5)~graph-guided retrieval.
 
-\begin{figure}[t]
+\begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{figures/fig5_architecture.pdf}
 \caption{\gralcrag{} framework architecture. Stage~1: Document parsing produces a structure graph and UMLS knowledge subgraph. Stage~2: Full-document transformer encoding. Stage~3: KG infusion via GAT attention. Stage~4: Structure-aware boundary detection and chunk embedding. Stage~5: Graph-guided hybrid retrieval.}
 \label{fig:architecture}
 \end{figure}
 
-\subsection{Document Parsing and Graph Construction}
+\subsubsection{Document Parsing and Graph Construction}\label{sec:parsing}
 
-\subsubsection{Document Structure Graph}
-
+\paragraph{Document Structure Graph}
 For each full-text article~$D$, we construct a document structure graph $G_s = (V_s, E_s)$ with node types at multiple granularities---section nodes ($v^{\text{sec}}$), subsection nodes ($v^{\text{sub}}$), paragraph nodes ($v^{\text{par}}$), and citation nodes ($v^{\text{cit}}$)---and edge types capturing hierarchical ($e^{\text{hier}}$), sequential ($e^{\text{seq}}$), citation ($e^{\text{cit}}$), and cross-reference ($e^{\text{xref}}$) relationships. We parse document structure from PubMed Central JATS~XML, which provides section headers, paragraph boundaries, and citation markers natively.
 
-\subsubsection{Biomedical Knowledge Subgraph}
-
+\paragraph{Biomedical Knowledge Subgraph}
 For each document, we extract a document-specific knowledge subgraph $G_k = (V_k, E_k)$ from UMLS. Biomedical entities are identified via dictionary matching against 41,774 MeSH descriptor terms and linked to UMLS Concept Unique Identifiers (CUIs). For each linked CUI, we extract 1-hop neighborhoods capturing semantic type assignments, hierarchical relationships (\texttt{is\_a}, \texttt{part\_of}), and associative relationships (\texttt{may\_treat}, \texttt{causes}).
 
-\subsection{Full-Document Encoding}
+\subsubsection{Full-Document Encoding}\label{sec:encoding}
 
 Following late chunking~\cite{gunther2024late}, we process the full document through a transformer encoder. Let $D = (t_1, t_2, \ldots, t_N)$ be the tokenized document. The encoder produces:
 \begin{equation}
@@ -147,16 +127,14 @@ Following late chunking~\cite{gunther2024late}, we process the full document thr
 \end{equation}
 where $\mathbf{h}_i \in \mathbb{R}^d$ is the contextualized embedding for token~$t_i$. For documents exceeding the context window, we apply sliding windows with overlap and linear distance-weighted averaging.
 
-\subsection{Knowledge Graph Infusion}
+\subsubsection{Knowledge Graph Infusion}\label{sec:kg-infusion}
 
 The key innovation of \gralcrag{} is injecting biomedical KG signals into token-level representations \emph{before} chunk-level pooling.
 
-\subsubsection{Entity-Token Alignment}
-
+\paragraph{Entity-Token Alignment}
 For each recognized entity~$e_j$ with token span $(s_j, f_j)$, we obtain a pre-trained concept embedding $\mathbf{u}_j \in \mathbb{R}^{d_k}$ from SapBERT~\cite{liu2021self}.
 
-\subsubsection{Graph Attention Infusion}
-
+\paragraph{Graph Attention Infusion}
 A lightweight GAT layer~\cite{velickovic2018graph} operates over $G_k$ to compute entity-aware representations:
 \begin{equation}
   \alpha_{jk} = \frac{\exp\!\big(\text{LeakyReLU}(\mathbf{a}^{\!\top}\![\mathbf{W}\mathbf{u}_j \| \mathbf{W}\mathbf{u}_k])\big)}{\sum_{l \in \mathcal{N}(j)} \exp\!\big(\text{LeakyReLU}(\mathbf{a}^{\!\top}\![\mathbf{W}\mathbf{u}_j \| \mathbf{W}\mathbf{u}_l])\big)}
@@ -166,15 +144,14 @@ A lightweight GAT layer~\cite{velickovic2018graph} operates over $G_k$ to comput
 \end{equation}
 where $\mathbf{W} \in \mathbb{R}^{d' \times d_k}$ is a learnable weight matrix and $\mathbf{a} \in \mathbb{R}^{2d'}$ is the attention vector.
 
-\subsubsection{Token-Level Fusion}
-
+\paragraph{Token-Level Fusion}
 For each token~$t_i$ within entity span $(s_j, f_j)$:
 \begin{equation}
   \mathbf{h}'_i = \mathbf{h}_i + \lambda \cdot \text{MLP}(\mathbf{u}'_j)
 \end{equation}
 where $\text{MLP}\!: \mathbb{R}^{d'} \!\to\! \mathbb{R}^{d}$ projects the entity embedding, and $\lambda$ is a gating scalar initialized to~0.1.
 
-\subsection{Structure-Aware Chunk Boundary Detection}
+\subsubsection{Structure-Aware Chunk Boundary Detection}\label{sec:boundaries}
 
 Unlike standard late chunking, \gralcrag{} determines boundaries using $G_s$. We compute a boundary score~$b_i$ integrating three signals:
 
@@ -204,7 +181,7 @@ The combined score is:
 \end{equation}
 with $\alpha_1\!=\!0.5$, $\alpha_2\!=\!0.3$, $\alpha_3\!=\!1.0$, and $\gamma\!=\!0.5$. Peak detection selects boundaries exceeding threshold $\tau\!=\!0.3$ with min/max chunk sizes of 128/1024 tokens. Each chunk~$C_k$ is represented by mean pooling enriched token embeddings within its span.
 
-\subsection{Graph-Guided Retrieval}
+\subsubsection{Graph-Guided Retrieval}\label{sec:retrieval-method}
 
 For a query~$q$ with dense embedding $\mathbf{q}$ and entity set~$E_q$, the retrieval score for chunk~$C_k$ is:
 \begin{equation}
@@ -212,33 +189,75 @@ For a query~$q$ with dense embedding $\mathbf{q}$ and entity set~$E_q$, the retr
 \end{equation}
 where $\text{kg\_prox}$ computes average maximum cosine similarity between query and chunk entity embeddings, and $\beta\!=\!0.7$.
 
-% ══════════════════════════════════════════════════════════════
-\section{Experimental Setup}
+\subsection{Experimental Setup}\label{sec:setup}
 
-\subsection{Datasets and Corpus}
+\subsubsection{Datasets and Corpus}\label{sec:datasets}
 
 We evaluate on \textbf{PubMedQA}~\cite{jin2019pubmedqa}: 1,000 questions (500~expert-annotated + 500~artificial) with yes/no/maybe labels derived from PubMed abstracts. Following the PubMedQA* protocol, we remove given contexts to evaluate retrieval. The retrieval corpus consists of the 1,000 PubMedQA source abstracts. Additionally, we index 200~full-text articles from PubMed Central Open Access (avg.\ 6.8~sections, 18.2~paragraphs per article) for efficiency benchmarking.
 
-\subsection{Baselines}
+\subsubsection{Baselines}\label{sec:baselines}
 
 We compare six configurations: (1)~Naive fixed-size chunking (256~tokens, 32~overlap); (2)~Semantic chunking (embedding similarity threshold~0.75); (3)~Late chunking~\cite{gunther2024late} with sentence-level boundaries; (4)~Structure-aware late chunking (no KG); (5)~\gralcrag{} with KG infusion; (6)~\gralcrag{} with KG infusion + graph-guided retrieval. All use \texttt{all-MiniLM-L6-v2} (384-dim) as the embedding model.
 
-\subsection{Implementation}
+\subsubsection{Implementation}\label{sec:implementation}
 
 Entity linking uses 41,774~MeSH descriptor terms via longest-match dictionary lookup. SapBERT (\texttt{cambridgeltl/SapBERT-from-PubMedBERT-fulltext}) provides 768-dim concept embeddings, projected to 384-dim via PCA. FAISS~\texttt{IndexFlatIP} serves as the vector index. All experiments run on CPU (16\,GB RAM).
 
-\subsection{Evaluation Metrics}
+\subsubsection{Evaluation Metrics}\label{sec:metrics}
 
 \textbf{Retrieval:} Mean Reciprocal Rank (MRR), Recall@$k$ ($k \!\in\! \{1,3,5,10\}$). Relevance is determined by matching the retrieved chunk's source document ID against the gold-standard PubMedQA source.
 
-% ══════════════════════════════════════════════════════════════
-\section{Results}
+\subsection{Full-Text Evaluation Design}\label{sec:fulltext-design}
 
-\subsection{Retrieval Performance}
+To assess whether \gralcrag{}'s structural and ontological components provide benefit on longer documents, we construct a document-length gradient evaluation spanning four conditions of increasing textual complexity:
+
+\begin{enumerate}
+  \item \textbf{Abstract} (${\sim}$200 words): Single-paragraph summaries lacking internal structure. Serves as the baseline condition (Sect.~\ref{sec:retrieval-results}).
+  \item \textbf{Introduction} (${\sim}$500--1{,}000 words): Multi-paragraph sections with background context and citations, but no methods or results.
+  \item \textbf{Partial} (${\sim}$2{,}000--4{,}000 words): Introduction + Methods sections, introducing structural boundaries and cross-referential content.
+  \item \textbf{Full-text} (${\sim}$5{,}000--8{,}000 words): Complete IMRaD articles with rich section hierarchy, cross-section dependencies, and dense biomedical entity networks.
+\end{enumerate}
+
+The corpus consists of 4{,}992 PMC Open Access articles downloaded and parsed, of which 2{,}359 pass IMRaD structure filtering (requiring standard section headers and $\geq$1{,}000 words) using JATS~XML section-header parsing. After condition extraction, the evaluation set contains 2{,}325 introduction, 2{,}353 partial, and 2{,}359 full-text article instances, yielding 2{,}033 template-based cross-section questions. Each article contributes one document instance per condition, enabling paired comparisons across strategies.
+
+\subsection{Cross-Section QA Benchmark}\label{sec:benchmark}
+
+A central question motivating \gralcrag{} is whether structure-aware chunking improves retrieval of information that requires reasoning across document sections; for example, linking a method description to its corresponding results, or connecting an introduction's hypothesis to the discussion's interpretation. To test this, we construct a synthetic cross-section QA benchmark.
+
+\subsubsection{Benchmark Construction}\label{sec:benchmark-construction}
+
+We generate 2{,}033 template-based questions that explicitly require cross-section reasoning, drawn from five template types:
+
+\begin{enumerate}
+  \item \textbf{Method$\to$Result:} ``What results were obtained using [method X]?''
+  \item \textbf{Intro$\to$Result:} ``Does the data support the hypothesis that [hypothesis from introduction]?''
+  \item \textbf{Result$\to$Discussion:} ``How do the authors interpret the finding that [result Y]?''
+  \item \textbf{Method$\to$Discussion:} ``What limitations of [method X] are discussed?''
+  \item \textbf{Cross-study:} ``How do the results compare to [cited prior work Z]?''
+\end{enumerate}
+
+Template slots are populated from parsed section content using regex and entity extraction.
+
+\subsubsection{Cross-Section Metrics}\label{sec:crosssection-metrics}
+
+We define two cross-section-specific metrics:
+
+\textbf{Cross-Section Recall (CS~Recall):} The proportion of cross-section questions for which the top-$k$ retrieved chunks span at least two distinct document sections required by the question template. Measured per document-length condition.
+
+\textbf{Section Coverage@$k$ (SecCov@$k$):} The average number of distinct document sections represented in the top-$k$ retrieved chunks, normalized by the total number of sections in the source document.
+
+\subsection{Generation Evaluation Protocol}\label{sec:generation-protocol}
+
+To test whether structural coverage translates to better downstream answers, we evaluate generation quality using GPT-4o-mini. For each strategy, we retrieve the top-5 chunks for 50 cross-section questions from the full-text condition and generate answers. We report answer F1 (token overlap between generated answer and question) and average section diversity of retrieved context.
+
+% ══════════════════════════════════════════════════════════════
+\section{Results}\label{sec:results}
+
+\subsection{Retrieval Performance}\label{sec:retrieval-results}
 
 Table~\ref{tab:retrieval} presents retrieval results across all six configurations.
 
-\begin{table}[H]
+\begin{table}[ht]
 \centering
 \caption{Retrieval performance on PubMedQA* (1,000 questions, 1,000-abstract corpus). \textbf{Bold}: best per column.}
 \label{tab:retrieval}
@@ -259,25 +278,25 @@ Structure-Aware (no KG)          & 0.9765 & 0.9660 & 0.9850 & 0.9890 & 0.9940 \\
 
 All strategies achieve high retrieval performance (MRR~$>$~0.95), reflecting a near-ceiling effect. Semantic chunking achieves the highest MRR (0.9802). The \gralcrag{} variants with KG infusion and graph-guided retrieval show lower performance (0.9687 and 0.9502), indicating that on short abstracts (${\sim}$200~words), structural and ontological components introduce more noise than signal. Figure~\ref{fig:mrr} visualizes these differences. Figure~\ref{fig:recall} shows Recall@$k$ across retrieval depths, where performance converges at higher~$k$ with all methods exceeding 0.99 at $k\!=\!10$.
 
-\begin{figure}[t]
+\begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{figures/fig1_mrr_comparison.pdf}
 \caption{Mean Reciprocal Rank across six chunking strategies on PubMedQA* (1,000 questions). Semantic chunking achieves the highest MRR. \gralcrag{} variants show slight degradation on short abstracts.}
 \label{fig:mrr}
 \end{figure}
 
-\begin{figure}[t]
+\begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{figures/fig2_recall_at_k.pdf}
 \caption{Recall@$k$ ($k \!\in\! \{1,3,5,10\}$) across all strategies. Performance converges at higher $k$, with all methods exceeding 0.99 at $k\!=\!10$.}
 \label{fig:recall}
 \end{figure}
 
-\subsection{Ablation Study}
+\subsection{Ablation Study}\label{sec:ablation}
 
 Table~\ref{tab:ablation} traces the incremental effect of each \gralcrag{} component.
 
-\begin{table}[H]
+\begin{table}[ht]
 \centering
 \caption{Ablation: incremental effect of \gralcrag{} components on PubMedQA* MRR.}
 \label{tab:ablation}
@@ -294,7 +313,7 @@ Late Chunking (base)             & 0.9768 & 0.9660 & 0.9920 & ---    \\
 \end{tabular}
 \end{table}
 
-\begin{figure}[t]
+\begin{figure}[ht]
 \centering
 \includegraphics[width=0.85\linewidth]{figures/fig3_ablation.pdf}
 \caption{Ablation: incremental effect of each \gralcrag{} component on MRR. The dashed line marks the late chunking baseline. Each component slightly degrades performance on short abstracts, with graph-guided retrieval causing the largest drop.}
@@ -303,11 +322,11 @@ Late Chunking (base)             & 0.9768 & 0.9660 & 0.9920 & ---    \\
 
 Structure-aware boundaries have negligible impact on short texts ($\Delta$\,MRR = $-$0.0003). KG infusion degrades performance ($\Delta$\,MRR = $-$0.0081), suggesting the fusion weight $\lambda\!=\!0.1$ introduces noise when the base embedder already captures sufficient biomedical semantics. Graph-guided retrieval produces the largest degradation ($\Delta$\,MRR = $-$0.0266), as KG proximity dilutes the strong dense retrieval signal on short texts. Figure~\ref{fig:ablation} visualizes this incremental degradation.
 
-\subsection{Efficiency Analysis}
+\subsection{Efficiency Analysis}\label{sec:efficiency}
 
 Table~\ref{tab:efficiency} reports measured indexing times on 200 full-text PMC articles (CPU-only).
 
-\begin{table}[H]
+\begin{table}[ht]
 \centering
 \caption{Indexing efficiency (200 full-text articles, CPU, \texttt{all-MiniLM-L6-v2}).}
 \label{tab:efficiency}
@@ -327,29 +346,18 @@ Structure-Aware      & 2,139  & 1,044.1 \\
 
 \gralcrag{} indexing takes 42.8\,min, approximately 6$\times$ slower than naive chunking due to SapBERT entity encoding, MeSH dictionary matching (41,774 terms), and boundary score computation. On GPU hardware, embedding steps would be 10--50$\times$ faster. Figure~\ref{fig:efficiency} visualizes the trade-off between chunk count and indexing time.
 
-\begin{figure}[t]
+\begin{figure}[ht]
 \centering
 \includegraphics[width=0.85\linewidth]{figures/fig4_efficiency.pdf}
 \caption{Indexing efficiency on 200 full-text PMC articles (CPU). Left axis: number of chunks produced. Right axis: indexing time. \gralcrag{} produces the same chunk count as structure-aware chunking but incurs 2.5$\times$ overhead from KG infusion.}
 \label{fig:efficiency}
 \end{figure}
 
-\subsection{Full-Text Evaluation}
+\subsection{Full-Text Retrieval}\label{sec:fulltext-results}
 
-To assess whether \gralcrag{}'s structural and ontological components provide benefit on longer documents, we construct a document-length gradient evaluation spanning four conditions of increasing textual complexity:
+Table~\ref{tab:fulltext} presents retrieval performance across the document-length conditions described in Sect.~\ref{sec:fulltext-design}.
 
-\begin{enumerate}[leftmargin=*,itemsep=2pt]
-  \item \textbf{Abstract} (${\sim}$200 words): Single-paragraph summaries lacking internal structure. Serves as the baseline condition (Section~5.1).
-  \item \textbf{Introduction} (${\sim}$500--1{,}000 words): Multi-paragraph sections with background context and citations, but no methods or results.
-  \item \textbf{Partial} (${\sim}$2{,}000--4{,}000 words): Introduction + Methods sections, introducing structural boundaries and cross-referential content.
-  \item \textbf{Full-text} (${\sim}$5{,}000--8{,}000 words): Complete IMRaD articles with rich section hierarchy, cross-section dependencies, and dense biomedical entity networks.
-\end{enumerate}
-
-The corpus consists of 4{,}992 PMC Open Access articles downloaded and parsed, of which 2{,}359 pass IMRaD structure filtering (requiring standard section headers and $\geq$1{,}000 words) using JATS~XML section-header parsing. After condition extraction, the evaluation set contains 2{,}325 introduction, 2{,}353 partial, and 2{,}359 full-text article instances, yielding 2{,}033 template-based cross-section questions. Each article contributes one document instance per condition, enabling paired comparisons across strategies.
-
-Table~\ref{tab:fulltext} presents retrieval performance across document-length conditions and strategies.
-
-\begin{table}[H]
+\begin{table}[ht]
 \centering
 \caption{Retrieval performance across document-length conditions (2{,}359 IMRaD-filtered PMC articles, 2{,}033 template questions). Semantic chunking achieves the highest MRR across all conditions, while structure-aware methods show advantages in section coverage (Table~\ref{tab:crosssection}).}
 \label{tab:fulltext}
@@ -385,44 +393,20 @@ Table~\ref{tab:fulltext} presents retrieval performance across document-length c
 \end{tabular}
 \end{table}
 
-Figure~\ref{fig:crossover} shows MRR across document-length conditions for all strategies. Semantic chunking dominates MRR at every document length, indicating that content-similarity remains the strongest signal for point-estimate retrieval accuracy. However, this metric alone does not capture structural retrieval diversity, a dimension where \gralcrag{} demonstrates clear advantages (Section~5.5).
+Figure~\ref{fig:crossover} shows MRR across document-length conditions for all strategies. Semantic chunking dominates MRR at every document length, indicating that content-similarity remains the strongest signal for point-estimate retrieval accuracy. However, this metric alone does not capture structural retrieval diversity, a dimension where \gralcrag{} demonstrates clear advantages (Sect.~\ref{sec:crosssection-results}).
 
-\begin{figure}[t]
+\begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{figures/fig6_crossover_plot.pdf}
-\caption{MRR across document-length conditions (introduction, partial, full-text) for all retrieval strategies. Semantic chunking achieves the highest MRR throughout, while structure-aware methods (\gralcrag{}, Structure-Aware) show competitive performance and provide complementary advantages in section coverage (Figure~\ref{fig:seccoverage}).}
+\caption{MRR across document-length conditions (introduction, partial, full-text) for all retrieval strategies. Semantic chunking achieves the highest MRR throughout, while structure-aware methods (\gralcrag{}, Structure-Aware) show competitive performance and provide complementary advantages in section coverage (Fig.~\ref{fig:seccoverage}).}
 \label{fig:crossover}
 \end{figure}
 
-\subsection{Cross-Section Retrieval}
+\subsection{Cross-Section Retrieval}\label{sec:crosssection-results}
 
-A central question motivating \gralcrag{} is whether structure-aware chunking improves retrieval of information that requires reasoning across document sections; for example, linking a method description to its corresponding results, or connecting an introduction's hypothesis to the discussion's interpretation. To test this, we construct a synthetic cross-section QA benchmark.
+Table~\ref{tab:crosssection} presents cross-section retrieval results using the benchmark and metrics defined in Sect.~\ref{sec:benchmark}.
 
-\subsubsection{Benchmark Construction}
-
-We generate 2{,}033 template-based questions that explicitly require cross-section reasoning, drawn from five template types:
-
-\begin{enumerate}[leftmargin=*,itemsep=2pt]
-  \item \textbf{Method$\to$Result:} ``What results were obtained using [method X]?''
-  \item \textbf{Intro$\to$Result:} ``Does the data support the hypothesis that [hypothesis from introduction]?''
-  \item \textbf{Result$\to$Discussion:} ``How do the authors interpret the finding that [result Y]?''
-  \item \textbf{Method$\to$Discussion:} ``What limitations of [method X] are discussed?''
-  \item \textbf{Cross-study:} ``How do the results compare to [cited prior work Z]?''
-\end{enumerate}
-
-Template slots are populated from parsed section content using regex and entity extraction.
-
-\subsubsection{Evaluation Metrics}
-
-We define two cross-section-specific metrics:
-
-\textbf{Cross-Section Recall (CS~Recall):} The proportion of cross-section questions for which the top-$k$ retrieved chunks span at least two distinct document sections required by the question template. Measured per document-length condition.
-
-\textbf{Section Coverage@$k$ (SecCov@$k$):} The average number of distinct document sections represented in the top-$k$ retrieved chunks, normalized by the total number of sections in the source document.
-
-Table~\ref{tab:crosssection} presents cross-section retrieval results.
-
-\begin{table}[H]
+\begin{table}[ht]
 \centering
 \caption{Section coverage and cross-section recall across retrieval depths. SecCov@$k$ measures the average number of distinct document sections in the top-$k$ retrieved chunks. CS~Recall@20 measures whether top-20 chunks span at least two required sections. Content-only methods always retrieve from a single section (SecCov\,=\,1.0), while structure-aware methods retrieve from up to 4.5$\times$ more sections on full-text articles at $k$=5, scaling to 15.6$\times$ at $k$=20.}
 \label{tab:crosssection}
@@ -445,18 +429,18 @@ Structure-Aware    & 2.32 & 3.52 & 4.26 & 3.97 & 10.08 & 14.43 & 0.000 & 0.000 &
 
 Cross-section recall is 0.000 across all strategies, conditions, and retrieval depths ($k$=5, 10, 20), indicating that no method successfully retrieves chunks from both required sections even at the deepest evaluation depth. This finding is consistent with the sparse distribution of cross-section evidence relative to per-section density. However, Figure~\ref{fig:seccoverage} reveals a striking difference in section coverage: structure-aware methods retrieve from 2--15$\times$ more distinct sections than content-only methods, with coverage scaling both with document length and retrieval depth. \gralcrag{} (KG) achieves SecCov@20\,=\,15.57 on full-text articles vs.\ 1.0 for content-only methods, a 15.6$\times$ advantage in structural coverage.
 
-\begin{figure}[t]
+\begin{figure}[ht]
 \centering
 \includegraphics[width=0.85\linewidth]{figures/fig8_section_coverage.pdf}
 \caption{Section coverage (SecCov@5) across document-length conditions. Content-only methods (Naive, Semantic, Late Chunking) are locked at 1.0 regardless of document length, while \gralcrag{} and Structure-Aware scale from ${\sim}$2.3 (introduction) to ${\sim}$4.5 (full-text), demonstrating that structure-aware retrieval surfaces evidence from across the document rather than concentrating on a single section. At $k$=20, the gap widens to 15.6$\times$ (Table~\ref{tab:crosssection}).}
 \label{fig:seccoverage}
 \end{figure}
 
-\subsection{Generation Quality}
+\subsection{Generation Quality}\label{sec:generation-results}
 
-To test whether structural coverage translates to better downstream answers, we evaluate generation quality using GPT-4o-mini. For each strategy, we retrieve the top-5 chunks for 50 cross-section questions from the full-text condition and generate answers. Table~\ref{tab:generation} reports answer F1 (token overlap between generated answer and question) and average section diversity of retrieved context.
+Table~\ref{tab:generation} reports generation quality results following the protocol described in Sect.~\ref{sec:generation-protocol}.
 
-\begin{table}[H]
+\begin{table}[ht]
 \centering
 \caption{Generation quality on 50 cross-section questions (full-text condition, GPT-4o-mini). Section diversity measures the average number of distinct sections in the top-5 retrieved chunks. KG-infused retrieval (\gralcrag{}) narrows the F1 gap to 0.009 while maintaining 4.6$\times$ section diversity, partially bridging the retrieval-to-generation gap.}
 \label{tab:generation}
@@ -478,7 +462,7 @@ Structure-Aware    & 0.381 & 4.48 & 86{,}060 \\
 Semantic chunking achieves the highest F1 (0.403) while retrieving from a single section, whereas content-only methods uniformly exhibit SecDiv\,=\,1.0. Among structure-aware methods, \gralcrag{} (KG) achieves F1\,=\,0.394 while drawing from 4.62 sections on average, narrowing the gap to just $\Delta$\,=\,0.009 compared to Semantic. Graph-guided re-ranking adds a marginal boost (F1\,=\,0.395, SecDiv\,=\,4.48). Notably, KG-infused retrieval outperforms both Naive (0.389) and Structure-Aware without KG (0.381), suggesting that ontological enrichment helps bridge the retrieval-to-generation gap. Nevertheless, the persistent F1 advantage of single-section retrieval indicates that \textbf{multi-section synthesis remains a bottleneck}: GPT-4o-mini produces slightly more focused answers from concentrated evidence, even though structure-aware retrieval surfaces diverse, multi-section context.
 
 % ══════════════════════════════════════════════════════════════
-\section{Discussion}
+\section{Discussion}\label{sec:discussion}
 
 \subsection{The Precision--Breadth Trade-off}
 
@@ -488,7 +472,7 @@ Our evaluation reveals a fundamental trade-off between retrieval \emph{precision
 
 \subsection{The Document-Length Effect}
 
-The document-length gradient evaluation (Section~5.4) reveals two distinct scaling behaviors depending on the metric. For MRR, Semantic chunking improves from introduction (0.488) to partial (0.555) then slightly decreases on full-text (0.517), with the ranking among strategies remaining stable across conditions. No MRR crossover point is observed: semantic chunking leads throughout. However, for section coverage, the scaling behavior is strikingly different. Content-only methods remain flat at SecCov@$k$\,=\,1.0 regardless of document length or retrieval depth, while structure-aware methods scale with both dimensions: \gralcrag{} (KG) increases from SecCov@5\,=\,2.33 (introduction) to 3.74 (partial) to 4.46 (full-text), and from SecCov@20\,=\,3.95 (introduction) to 10.84 (partial) to 15.57 (full-text). This divergence reveals that MRR alone is insufficient for evaluating full-text retrieval systems: it captures \emph{how well} the system ranks the single most relevant chunk, but not \emph{how broadly} it covers the document's structural content.
+The document-length gradient evaluation (Sect.~\ref{sec:fulltext-design}) reveals two distinct scaling behaviors depending on the metric. For MRR, Semantic chunking improves from introduction (0.488) to partial (0.555) then slightly decreases on full-text (0.517), with the ranking among strategies remaining stable across conditions. No MRR crossover point is observed: semantic chunking leads throughout. However, for section coverage, the scaling behavior is strikingly different. Content-only methods remain flat at SecCov@$k$\,=\,1.0 regardless of document length or retrieval depth, while structure-aware methods scale with both dimensions: \gralcrag{} (KG) increases from SecCov@5\,=\,2.33 (introduction) to 3.74 (partial) to 4.46 (full-text), and from SecCov@20\,=\,3.95 (introduction) to 10.84 (partial) to 15.57 (full-text). This divergence reveals that MRR alone is insufficient for evaluating full-text retrieval systems: it captures \emph{how well} the system ranks the single most relevant chunk, but not \emph{how broadly} it covers the document's structural content.
 
 \subsection{When Does Structure-Awareness Matter?}
 
@@ -498,7 +482,7 @@ The universal cross-section recall of 0.000 even at $k$=20 reveals a fundamental
 
 \subsection{The Retrieval-to-Generation Gap}
 
-Our generation experiments (Section~5.6) across all six strategies reveal a nuanced picture. Content-only methods (Naive, Semantic, Late Chunking) all retrieve from a single section (SecDiv\,=\,1.0), with Semantic achieving the highest F1 (0.403). Structure-aware methods retrieve from 4.5$\times$ more sections, and KG-infused retrieval (\gralcrag{}) narrows the F1 gap substantially: 0.394 vs.\ 0.403 ($\Delta$\,=\,0.009), while covering 4.62 sections on average. Graph-guided re-ranking provides a marginal additional boost (F1\,=\,0.395). This suggests that \textbf{ontological enrichment partially bridges the retrieval-to-generation gap}: KG-infused embeddings help the generation model leverage multi-section context more effectively than purely structural methods (Structure-Aware F1\,=\,0.381). Nevertheless, the persistent advantage of single-section retrieval indicates that \textbf{multi-section synthesis remains a bottleneck}: GPT-4o-mini extracts slightly more relevant answers from concentrated evidence than from distributed evidence spanning multiple sections. Future work on generation-side innovations, such as multi-section chain-of-thought prompting, section-aware attention, or explicit evidence aggregation, may fully close this gap.
+Our generation experiments (Sect.~\ref{sec:generation-results}) across all six strategies reveal a nuanced picture. Content-only methods (Naive, Semantic, Late Chunking) all retrieve from a single section (SecDiv\,=\,1.0), with Semantic achieving the highest F1 (0.403). Structure-aware methods retrieve from 4.5$\times$ more sections, and KG-infused retrieval (\gralcrag{}) narrows the F1 gap substantially: 0.394 vs.\ 0.403 ($\Delta$\,=\,0.009), while covering 4.62 sections on average. Graph-guided re-ranking provides a marginal additional boost (F1\,=\,0.395). This suggests that \textbf{ontological enrichment partially bridges the retrieval-to-generation gap}: KG-infused embeddings help the generation model leverage multi-section context more effectively than purely structural methods (Structure-Aware F1\,=\,0.381). Nevertheless, the persistent advantage of single-section retrieval indicates that \textbf{multi-section synthesis remains a bottleneck}: GPT-4o-mini extracts slightly more relevant answers from concentrated evidence than from distributed evidence spanning multiple sections. Future work on generation-side innovations, such as multi-section chain-of-thought prompting, section-aware attention, or explicit evidence aggregation, may fully close this gap.
 
 \subsection{Implications for Biomedical RAG}
 
@@ -510,7 +494,7 @@ HeteRAG~\cite{yang2025heterag} decouples retrieval and generation representation
 
 \subsection{Limitations}
 
-\begin{enumerate}[leftmargin=*,itemsep=2pt]
+\begin{enumerate}
   \item \textbf{Synthetic benchmark validity.} The 2{,}033 template-generated questions may not capture the full range of cross-section reasoning patterns encountered in real biomedical information needs. The template-based approach may overrepresent certain reasoning patterns (e.g., Method$\to$Result) and underrepresent others (e.g., implicit cross-section reasoning).
   \item \textbf{IMRaD filter bias.} The full-text evaluation corpus is filtered for standard IMRaD structure (2{,}359 of 4{,}992 downloaded articles), excluding review articles, case reports, letters, editorials, and non-standard formats. This 47.3\% retention rate introduces a selection bias toward primary research articles.
   \item \textbf{Shallow retrieval depth.} The universal cross-section recall of 0.000 at $k$=5, 10, and 20 indicates that top-$k$ retrieval alone is insufficient for cross-section reasoning. Explicit multi-section retrieval strategies or re-ranking with section-diversity objectives may be required.
@@ -527,26 +511,27 @@ HeteRAG~\cite{yang2025heterag} decouples retrieval and generation representation
 Key extensions include: \textbf{(1)~Generation-side innovations}: multi-section chain-of-thought prompting, section-aware attention mechanisms, and explicit evidence aggregation strategies to close the retrieval-to-generation gap; \textbf{(2)~Hybrid retrieval}: combining semantic chunking's MRR strength with \gralcrag{}'s structural coverage via re-ranking or multi-stage retrieval; \textbf{(3)~Section-diversity objectives}: re-ranking that explicitly maximizes section diversity to improve cross-section recall (which remains 0.000 even at $k$=20); \textbf{(4)~Downstream validation}: evaluation on tasks where multi-section evidence is explicitly needed (systematic review generation, clinical guideline synthesis, multi-hop biomedical QA); \textbf{(5)~Adaptive weighting}: document-length-dependent $\lambda$ and $\beta$ to reduce KG noise on shorter documents; and \textbf{(6)~Human evaluation}: expert assessment of whether structurally diverse retrieved evidence is perceived as more complete or useful than single-section evidence.
 
 % ══════════════════════════════════════════════════════════════
-\section{Conclusion}
+\section{Conclusion}\label{sec:conclusion}
 
 We presented \gralcrag{}, a framework integrating graph-aware structural intelligence into the late chunking paradigm for biomedical RAG, alongside structural coverage metrics that expose a dimension of retrieval quality invisible to standard evaluation. Evaluation on 2{,}359 IMRaD-filtered PMC articles with 2{,}033 cross-section questions reveals a sharp precision--breadth trade-off: content-similarity methods achieve the highest MRR (0.517) but are structurally blind (SecCov\,=\,1.0), while structure-aware methods retrieve from up to 15.6$\times$ more document sections (SecCov@20\,=\,15.57) at the cost of lower ranking accuracy (MRR\,=\,0.323). Generation experiments across all six strategies show that KG-infused retrieval narrows the F1 gap to just 0.009 (0.394 vs.\ 0.403) while maintaining 4.6$\times$ section diversity, partially bridging the retrieval-to-generation gap, though multi-section synthesis remains an open challenge.
 
 These findings yield three contributions to the field: (1)~structural coverage metrics that complement ranking accuracy and should be adopted for full-text retrieval evaluation; (2)~empirical evidence that content-similarity and structure-aware methods optimize for different objectives, and the choice between them must be guided by downstream task requirements; and (3)~identification of multi-section synthesis as the critical bottleneck: improving how generation models integrate structurally diverse evidence may yield greater gains than further improving retrieval. We release the complete \gralcrag{} codebase to enable reproduction and extension.
 
 % ══════════════════════════════════════════════════════════════
-\small
-\bibliographystyle{unsrtnat}
+\backmatter
+
+\section*{Declarations}
+
+\begin{itemize}
+\item \textbf{Funding.} Not applicable.
+\item \textbf{Competing interests.} The authors declare no competing interests.
+\item \textbf{Ethics approval and consent to participate.} Not applicable. This study uses publicly available data from PubMed Central Open Access and does not involve human subjects.
+\item \textbf{Consent for publication.} Not applicable.
+\item \textbf{Data availability.} The PubMedQA dataset is publicly available at \url{https://pubmedqa.github.io/}. The PubMed Central Open Access corpus was accessed via the NCBI E-utilities API. All evaluation data generated during this study are available in the project repository.
+\item \textbf{Code availability.} The complete \gralcrag{} codebase, including all chunking strategies, evaluation scripts, and benchmark construction tools, is available at [repository URL upon acceptance].
+\item \textbf{Authors' contributions.} P.M.\ conceived the study, designed and implemented the \gralcrag{} framework, conducted all experiments, and wrote the manuscript. A.R.\ supervised the research and reviewed the manuscript. All authors read and approved the final manuscript.
+\end{itemize}
+
 \bibliography{references}
-
-
-
-
-
-
-
-\end{thebibliography}
-
-\bigskip\noindent\rule{\linewidth}{0.4pt}
-\smallskip\noindent\textit{AI Disclosure:} This research paper was produced with the assistance of AI tools (Claude, Anthropic) for literature search, synthesis, and manuscript drafting. All references have been verified against their original sources. The authors take full responsibility for the intellectual content.
 
 \end{document}
