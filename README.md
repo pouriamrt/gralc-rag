@@ -1,26 +1,153 @@
+<div align="center">
+
 # GraLC-RAG
 
 **Graph-Aware Late Chunking for Retrieval-Augmented Generation in Biomedical Literature**
 
-GraLC-RAG integrates document structure graphs, UMLS knowledge graph infusion, and graph-guided retrieval into the late chunking paradigm for biomedical RAG.
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![PubMedQA](https://img.shields.io/badge/benchmark-PubMedQA-orange.svg)](https://pubmedqa.github.io/)
+[![PMC Open Access](https://img.shields.io/badge/corpus-PMC_Open_Access-red.svg)](https://www.ncbi.nlm.nih.gov/pmc/tools/openftlist/)
 
-## Key Findings
+*Standard retrieval metrics are structurally blind. We prove it.*
 
-Standard evaluation metrics like MRR systematically undervalue structural retrieval methods. Our evaluation on 2,359 IMRaD-filtered PubMed Central articles reveals:
+</div>
 
-- **Precision-breadth trade-off**: Content-similarity methods achieve the highest MRR (0.517) but are structurally blind (SecCov = 1.0). Structure-aware methods retrieve from up to **15.6x more document sections** (SecCov@20 = 15.57).
-- **KG infusion bridges the gap**: Ontological enrichment narrows the answer-quality gap to just ΔF1 = 0.009 while maintaining 4.6x section diversity.
-- **Multi-section synthesis bottleneck**: Cross-section recall remains 0.000 across all strategies, identifying multi-section reasoning as the critical open problem.
+---
+
+## The Problem
+
+RAG systems for biomedical literature are evaluated with metrics like MRR that reward finding *one good chunk*. But scientific documents have structure: a method in Section 2 connects to results in Section 4. **MRR cannot see this.**
+
+We built GraLC-RAG to investigate whether structure-aware retrieval helps, and discovered something more important: **content-similarity methods and structure-aware methods optimize for fundamentally different objectives**, and this divergence is invisible under standard evaluation.
+
+## Key Results
+
+> Evaluated on **2,359 IMRaD-filtered PubMed Central articles** with **2,033 cross-section questions**
+
+| What we measured | Content-similarity (Semantic) | Structure-aware (GraLC-RAG) |
+|:---|:---:|:---:|
+| **MRR** (ranking accuracy) | **0.517** | 0.323 |
+| **SecCov@20** (structural breadth) | 1.0 | **15.57** |
+| **Section diversity** | 1 section | **15.6x more sections** |
+| **Generation F1** | **0.403** | 0.394 (gap: 0.009) |
+
+Neither class of methods dominates. They optimize for different things:
+
+```mermaid
+quadrantChart
+    title Precision vs Breadth Trade-off
+    x-axis Low MRR --> High MRR
+    y-axis Low Coverage --> High Coverage
+    quadrant-1 "Ideal (open problem)"
+    quadrant-2 "Structural breadth"
+    quadrant-3 "Neither"
+    quadrant-4 "Ranking precision"
+    "Semantic Chunking": [0.85, 0.06]
+    "Naive (256-token)": [0.7, 0.06]
+    "Late Chunking": [0.65, 0.06]
+    "Structure-Aware": [0.6, 0.65]
+    "GraLC-RAG (KG)": [0.55, 0.75]
+    "GraLC-RAG +Graph": [0.57, 0.72]
+```
 
 ## Architecture
 
-GraLC-RAG operates in five stages:
+GraLC-RAG unifies late chunking (context-rich, structure-blind) with GraphRAG (structure-rich, context-fragmented):
 
-1. **Document Parsing** — Constructs document structure graphs and UMLS knowledge subgraphs from PubMed Central JATS XML
-2. **Full-Document Encoding** — Processes entire documents through a long-context transformer before chunking
-3. **Knowledge Graph Infusion** — Injects UMLS ontological signals into token-level representations via GAT attention
-4. **Structure-Aware Boundary Detection** — Determines chunk boundaries using structural, semantic, and entity coherence signals
-5. **Graph-Guided Retrieval** — Combines dense similarity with KG proximity for hybrid retrieval
+```mermaid
+flowchart LR
+    subgraph "Stage 1: Parse"
+        D["Biomedical\nDocument"] --> SG["Structure\nGraph"]
+        D --> KG["UMLS Knowledge\nSubgraph"]
+    end
+
+    subgraph "Stage 2: Encode"
+        D --> T["Full-Document\nTransformer"]
+        T --> H["Token\nEmbeddings"]
+    end
+
+    subgraph "Stage 3: Infuse"
+        H --> F["KG-Infused\nEmbeddings"]
+        KG --> GAT["GAT\nAttention"]
+        GAT --> F
+    end
+
+    subgraph "Stage 4: Chunk"
+        F --> BD["Boundary\nDetection"]
+        SG --> BD
+        BD --> C["Structure-Aware\nChunks"]
+    end
+
+    subgraph "Stage 5: Retrieve"
+        C --> IDX["FAISS\nIndex"]
+        Q["Query"] --> IDX
+        KG --> GR["Graph-Guided\nRe-ranking"]
+        IDX --> GR
+        GR --> R["Retrieved\nChunks"]
+    end
+
+    style D fill:#4a90d9,color:#fff
+    style R fill:#2ecc71,color:#fff
+    style Q fill:#e74c3c,color:#fff
+```
+
+### Boundary Detection
+
+Unlike flat chunking, GraLC-RAG uses three signals to find natural chunk boundaries:
+
+```mermaid
+flowchart TD
+    subgraph "Boundary Score"
+        S["Structural Signal\n(section/paragraph breaks)"]
+        E["Semantic Signal\n(embedding dissimilarity)"]
+        C["Entity Coherence\n(don't split entities)"]
+        S --> |"weight: 0.5"| B["Combined\nBoundary Score"]
+        E --> |"weight: 0.3"| B
+        C --> |"weight: 1.0"| B
+    end
+    B --> P["Peak Detection\n(threshold: 0.3)"]
+    P --> CH["Chunks\n(128-1024 tokens)"]
+```
+
+## Six Retrieval Strategies
+
+```mermaid
+graph TD
+    A["Late Chunking\n(base)"] --> B["+ Structure\nBoundaries"]
+    B --> C["+ KG Infusion\n(GraLC-RAG)"]
+    C --> D["+ Graph-Guided\nRetrieval"]
+
+    E["Naive\n(256-token)"] ~~~ A
+    F["Semantic\nChunking"] ~~~ A
+
+    style E fill:#95a5a6,color:#fff
+    style F fill:#95a5a6,color:#fff
+    style A fill:#3498db,color:#fff
+    style B fill:#2980b9,color:#fff
+    style C fill:#8e44ad,color:#fff
+    style D fill:#6c3483,color:#fff
+```
+
+| # | Strategy | MRR Impact | SecCov@20 |
+|:-:|:---------|:----------:|:---------:|
+| 1 | Naive (256-token) | baseline | 1.0 |
+| 2 | Semantic Chunking | **best MRR** | 1.0 |
+| 3 | Late Chunking | -0.0019 | 1.0 |
+| 4 | Structure-Aware | -0.0022 | 14.43 |
+| 5 | GraLC-RAG (KG) | -0.0100 | **15.57** |
+| 6 | GraLC-RAG (+Graph) | -0.0285 | **15.57** |
+
+## Evaluation Metrics
+
+We introduce two structural coverage metrics that expose what MRR misses:
+
+| Metric | What it captures | Why it matters |
+|:-------|:-----------------|:---------------|
+| **MRR** | Where the best chunk ranks | Standard, but structurally blind |
+| **Recall@k** | Whether the relevant chunk appears in top-k | Also structurally blind |
+| **SecCov@k** | Distinct document sections in top-k | Measures retrieval breadth |
+| **CS Recall** | Whether top-k spans multiple required sections | Measures cross-section reasoning |
 
 ## Installation
 
@@ -32,37 +159,45 @@ uv sync
 pip install -e .
 ```
 
-## Usage
-
-### Full Pipeline
+## Quick Start
 
 ```bash
-# 1. Download PubMedQA corpus + PMC full-text articles
+# Run the full pipeline
+bash scripts/run_full_pipeline.sh
+```
+
+Or step by step:
+
+```bash
+# 1. Download PubMedQA + PMC full-text articles
 python scripts/01_download_corpus.py
 
-# 2. Index corpus with all chunking strategies
+# 2. Index with all chunking strategies
 python scripts/02_index_corpus.py
 
-# 3. Evaluate retrieval on PubMedQA
+# 3. Evaluate retrieval (PubMedQA)
 python scripts/03_evaluate_retrieval.py
 
-# 4. Build full-text evaluation corpus (2,359 IMRaD articles)
+# 4. Build full-text corpus (2,359 IMRaD articles)
 python scripts/06_build_fulltext_corpus.py
 
 # 5. Generate cross-section QA benchmark (2,033 questions)
 python scripts/07_generate_crosssection_qa.py
 
-# 6. Evaluate full-text retrieval with structural coverage metrics
+# 6. Evaluate with structural coverage metrics
 python scripts/08_evaluate_fulltext_retrieval.py
 
-# 7. Evaluate generation quality (requires OpenAI API key)
+# 7. Generation quality (requires OPENAI_API_KEY)
 python scripts/10_evaluate_fulltext_generation.py
 ```
 
-### Or run everything at once
+## Configuration
 
-```bash
-bash scripts/run_full_pipeline.sh
+Create a `.env` file:
+
+```env
+OPENAI_API_KEY=sk-...    # For generation experiments
+NCBI_API_KEY=...         # Optional, increases PMC API rate limits
 ```
 
 ## Project Structure
@@ -70,52 +205,46 @@ bash scripts/run_full_pipeline.sh
 ```
 src/gralc_rag/
 ├── benchmark/        # Cross-section QA benchmark construction
-├── chunking/         # Chunking strategies (naive, semantic, late, structure-aware)
-├── corpus/           # PubMed/PMC corpus downloading and parsing
-├── evaluation/       # Metrics (MRR, Recall@k, SecCov@k, CS Recall)
-├── generation/       # LLM-based answer generation
-├── knowledge/        # UMLS entity linking and KG infusion
-├── retrieval/        # Dense and graph-guided retrieval
-└── config.py         # Configuration
-```
-
-## Evaluation Metrics
-
-| Metric | What it measures |
-|--------|-----------------|
-| **MRR** | Ranking accuracy of the single most relevant chunk |
-| **Recall@k** | Whether the relevant chunk appears in the top-k |
-| **SecCov@k** | Number of distinct document sections in the top-k |
-| **CS Recall** | Whether top-k spans multiple required sections |
-
-## Six Retrieval Strategies
-
-1. **Naive** — Fixed-size chunking (256 tokens, 32 overlap)
-2. **Semantic** — Embedding similarity-based boundaries
-3. **Late Chunking** — Full-document encoding, then sentence-level segmentation
-4. **Structure-Aware** — Late chunking with document structure graph boundaries
-5. **GraLC-RAG (KG)** — Structure-aware + UMLS knowledge graph infusion
-6. **GraLC-RAG (+Graph)** — Full pipeline with graph-guided hybrid retrieval
-
-## Configuration
-
-Set environment variables in `.env`:
-
-```
-OPENAI_API_KEY=sk-...          # For generation experiments
-NCBI_API_KEY=...               # For PubMed/PMC API access (optional, increases rate limits)
+│   ├── template_qa.py    # 5 template types (Method→Result, Intro→Result, ...)
+│   └── llm_qa.py         # LLM-based question generation
+├── chunking/         # All chunking strategies
+│   ├── naive.py          # Fixed-size (256 tokens, 32 overlap)
+│   ├── semantic.py       # Embedding similarity boundaries
+│   ├── late.py           # Full-document encoding → segment
+│   └── structure_aware.py # Graph-informed boundaries
+├── corpus/           # Data pipeline
+│   ├── downloader.py     # PubMedQA + PMC Open Access
+│   ├── parser.py         # JATS XML → structured documents
+│   └── condition_builder.py  # Document-length gradient
+├── evaluation/       # Metrics
+│   ├── metrics.py        # MRR, Recall@k
+│   ├── crosssection_metrics.py  # SecCov@k, CS Recall
+│   └── statistical.py   # Significance testing
+├── generation/       # Answer generation
+│   └── openai_gen.py     # GPT-4o-mini evaluation
+├── knowledge/        # UMLS integration
+│   ├── entity_linker.py  # MeSH dictionary matching (41,774 terms)
+│   ├── kg_infusion.py    # GAT-based token enrichment
+│   └── umls_client.py    # UMLS API client
+├── retrieval/        # Retrieval engines
+│   ├── dense.py          # FAISS dense retrieval
+│   ├── graph_guided.py   # KG proximity re-ranking
+│   └── index.py          # Index management
+└── config.py
 ```
 
 ## Citation
 
 ```bibtex
 @article{mortezaagha2026gralcrag,
-  title={Graph-Aware Late Chunking for Retrieval-Augmented Generation in Biomedical Literature},
-  author={Mortezaagha, Pouria and Rahgozar, Arya},
-  year={2026}
+  title   = {Graph-Aware Late Chunking for Retrieval-Augmented
+             Generation in Biomedical Literature},
+  author  = {Mortezaagha, Pouria and Rahgozar, Arya},
+  year    = {2026},
+  note    = {Submitted to Scientific Reports}
 }
 ```
 
 ## License
 
-MIT
+[MIT](LICENSE)
