@@ -81,7 +81,7 @@ We identify a critical gap at the intersection of these two paradigms: no existi
 In this paper, we make three contributions that span framework design, evaluation methodology, and empirical analysis:
 
 \begin{enumerate}[leftmargin=*,itemsep=2pt]
-  \item \textbf{\gralcrag{}: A structure-aware late chunking framework.} We propose \gralcrag{} (Graph-aware Late Chunking for Retrieval-Augmented Generation), which integrates document structure graphs for chunk boundary detection, UMLS knowledge graph signals for token-level enrichment, and graph-guided hybrid retrieval. This bridges the gap between context-preserving late chunking and structure-aware GraphRAG.
+  \item \textbf{\gralcrag{}: A structure-aware late chunking framework.} We propose \gralcrag{} (Graph-aware Late Chunking for Retrieval-Augmented Generation), which integrates document structure graphs for chunk boundary detection, UMLS knowledge graph signals for token-level enrichment, and graph-guided hybrid retrieval. This provides a unified testbed for investigating whether combining context-preserving late chunking with structure-aware GraphRAG yields measurable retrieval improvements.
 
   \item \textbf{A structural coverage evaluation methodology.} We introduce Section Coverage@$k$ (SecCov@$k$) and Cross-Section Recall (CS~Recall) as complementary metrics that capture retrieval breadth---the ability to surface evidence from multiple document sections---which standard ranking metrics like MRR entirely miss.
 
@@ -396,7 +396,7 @@ Figure~\ref{fig:crossover} shows MRR across document-length conditions for all s
 
 \subsection{Cross-Section Retrieval}
 
-A key hypothesis motivating \gralcrag{} is that structure-aware chunking should excel at retrieving information that requires reasoning across document sections---for example, linking a method description to its corresponding results, or connecting an introduction's hypothesis to the discussion's interpretation. To evaluate this, we construct a synthetic cross-section QA benchmark.
+A central question motivating \gralcrag{} is whether structure-aware chunking improves retrieval of information that requires reasoning across document sections---for example, linking a method description to its corresponding results, or connecting an introduction's hypothesis to the discussion's interpretation. To test this, we construct a synthetic cross-section QA benchmark.
 
 \subsubsection{Benchmark Construction}
 
@@ -481,6 +481,8 @@ Semantic chunking achieves the highest F1 (0.403) while retrieving from a single
 \section{Discussion}
 
 \subsection{The Precision--Breadth Trade-off}
+
+\textbf{Results--objectives alignment.} While \gralcrag{} achieved its architectural goal of unifying late chunking with structural awareness, its primary empirical contribution shifted from demonstrating system superiority to exposing a previously invisible evaluation blind spot. The framework did not improve ranking accuracy or cross-section recall over content-similarity baselines; instead, it revealed that these methods optimize for fundamentally different objectives---a finding that would have remained hidden under standard metrics alone.
 
 Our evaluation reveals a fundamental trade-off between retrieval \emph{precision} and retrieval \emph{breadth} that is invisible under standard ranking metrics. Semantic chunking achieves the highest MRR across all document-length conditions (0.488 on introduction, 0.555 on partial, 0.517 on full-text; Table~\ref{tab:fulltext}), confirming that content-similarity remains the strongest signal for identifying the single most relevant chunk. However, content-only methods are structurally blind: Naive, Semantic, and Late Chunking always retrieve from a single section (SecCov@5\,=\,1.0), regardless of document length. In contrast, \gralcrag{} (KG) retrieves from 2.33 sections on introduction-only documents and 4.46 sections on full-text articles at $k$=5---scaling to 15.57 at $k$=20 (Table~\ref{tab:crosssection}). Neither class of methods dominates the other: they optimize for fundamentally different objectives. Which is ``better'' depends entirely on the downstream task.
 
