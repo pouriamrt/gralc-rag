@@ -20,7 +20,7 @@ from pathlib import Path
 
 # ── Paths ──
 PROJECT_DIR = Path(__file__).resolve().parent.parent
-FIGURES_DIR = PROJECT_DIR / "figures"
+FIGURES_DIR = PROJECT_DIR / "paper" / "figures"
 FIGURES_DIR.mkdir(exist_ok=True)
 RESULTS_DIR = PROJECT_DIR / "results" / "fulltext"
 

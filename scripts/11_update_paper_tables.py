@@ -21,7 +21,7 @@ from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 RESULTS_DIR = PROJECT_DIR / "results" / "fulltext"
-PAPER_PATH = PROJECT_DIR / "paper.tex"
+PAPER_PATH = PROJECT_DIR / "paper" / "paper.tex"
 
 STRATEGIES = [
     "naive", "semantic", "late_chunking",
