@@ -34,100 +34,31 @@ We built GraLC-RAG to investigate whether structure-aware retrieval helps, and d
 
 Neither class of methods dominates. They optimize for different things:
 
-```mermaid
-quadrantChart
-    title Precision vs Breadth Trade-off
-    x-axis Low MRR --> High MRR
-    y-axis Low Coverage --> High Coverage
-    quadrant-1 "Ideal (open problem)"
-    quadrant-2 "Structural breadth"
-    quadrant-3 "Neither"
-    quadrant-4 "Ranking precision"
-    "Semantic Chunking": [0.85, 0.06]
-    "Naive (256-token)": [0.7, 0.06]
-    "Late Chunking": [0.65, 0.06]
-    "Structure-Aware": [0.6, 0.65]
-    "GraLC-RAG (KG)": [0.55, 0.75]
-    "GraLC-RAG +Graph": [0.57, 0.72]
-```
+<div align="center">
+<img src="artifacts/tradeoff.png" alt="Precision vs Breadth Trade-off" width="500">
+</div>
 
 ## Architecture
 
-GraLC-RAG unifies late chunking (context-rich, structure-blind) with GraphRAG (structure-rich, context-fragmented):
+GraLC-RAG unifies late chunking (context-rich, structure-blind) with GraphRAG (structure-rich, context-fragmented) in a five-stage pipeline:
 
-```mermaid
-flowchart LR
-    subgraph "Stage 1: Parse"
-        D["Biomedical\nDocument"] --> SG["Structure\nGraph"]
-        D --> KG["UMLS Knowledge\nSubgraph"]
-    end
-
-    subgraph "Stage 2: Encode"
-        D --> T["Full-Document\nTransformer"]
-        T --> H["Token\nEmbeddings"]
-    end
-
-    subgraph "Stage 3: Infuse"
-        H --> F["KG-Infused\nEmbeddings"]
-        KG --> GAT["GAT\nAttention"]
-        GAT --> F
-    end
-
-    subgraph "Stage 4: Chunk"
-        F --> BD["Boundary\nDetection"]
-        SG --> BD
-        BD --> C["Structure-Aware\nChunks"]
-    end
-
-    subgraph "Stage 5: Retrieve"
-        C --> IDX["FAISS\nIndex"]
-        Q["Query"] --> IDX
-        KG --> GR["Graph-Guided\nRe-ranking"]
-        IDX --> GR
-        GR --> R["Retrieved\nChunks"]
-    end
-
-    style D fill:#4a90d9,color:#fff
-    style R fill:#2ecc71,color:#fff
-    style Q fill:#e74c3c,color:#fff
-```
+<div align="center">
+<img src="artifacts/architecture.png" alt="GraLC-RAG Architecture" width="900">
+</div>
 
 ### Boundary Detection
 
 Unlike flat chunking, GraLC-RAG uses three signals to find natural chunk boundaries:
 
-```mermaid
-flowchart TD
-    subgraph "Boundary Score"
-        S["Structural Signal\n(section/paragraph breaks)"]
-        E["Semantic Signal\n(embedding dissimilarity)"]
-        C["Entity Coherence\n(don't split entities)"]
-        S --> |"weight: 0.5"| B["Combined\nBoundary Score"]
-        E --> |"weight: 0.3"| B
-        C --> |"weight: 1.0"| B
-    end
-    B --> P["Peak Detection\n(threshold: 0.3)"]
-    P --> CH["Chunks\n(128-1024 tokens)"]
-```
+<div align="center">
+<img src="artifacts/boundary_detection.png" alt="Boundary Detection" width="600">
+</div>
 
 ## Six Retrieval Strategies
 
-```mermaid
-graph TD
-    A["Late Chunking\n(base)"] --> B["+ Structure\nBoundaries"]
-    B --> C["+ KG Infusion\n(GraLC-RAG)"]
-    C --> D["+ Graph-Guided\nRetrieval"]
-
-    E["Naive\n(256-token)"] ~~~ A
-    F["Semantic\nChunking"] ~~~ A
-
-    style E fill:#95a5a6,color:#fff
-    style F fill:#95a5a6,color:#fff
-    style A fill:#3498db,color:#fff
-    style B fill:#2980b9,color:#fff
-    style C fill:#8e44ad,color:#fff
-    style D fill:#6c3483,color:#fff
-```
+<div align="center">
+<img src="artifacts/strategies.png" alt="Strategy Progression" width="300">
+</div>
 
 | # | Strategy | MRR Impact | SecCov@20 |
 |:-:|:---------|:----------:|:---------:|
