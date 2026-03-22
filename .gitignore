@@ -1,6 +1,10 @@
+# Environment & data
 .env
 data/
 results/
+docs/
+
+# Python
 __pycache__/
 *.pyc
 *.egg-info/
@@ -10,6 +14,16 @@ build/
 *.pt
 *.bin
 *.faiss
+
+# Paper materials (tracked locally on master, excluded from remote)
+paper.tex
+paper.pdf
+paper.md
+references.bib
+figures/
+sn-jnl.cls
+sn-basic.bst
+check_refs.py
 
 # LaTeX auxiliary files
 *.aux
@@ -50,4 +64,3 @@ build/
 *.swp
 *~
 _minted-*/
-docs/
