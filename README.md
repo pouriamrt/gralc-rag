@@ -8,6 +8,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![PubMedQA](https://img.shields.io/badge/benchmark-PubMedQA-orange.svg)](https://pubmedqa.github.io/)
 [![PMC Open Access](https://img.shields.io/badge/corpus-PMC_Open_Access-red.svg)](https://www.ncbi.nlm.nih.gov/pmc/tools/openftlist/)
+[![DOI](https://zenodo.org/badge/1189043606.svg)](https://doi.org/10.5281/zenodo.19197735)
 
 *Standard retrieval metrics are structurally blind. We prove it.*
 
