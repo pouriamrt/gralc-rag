@@ -172,8 +172,7 @@ src/gralc_rag/
   title   = {Graph-Aware Late Chunking for Retrieval-Augmented
              Generation in Biomedical Literature},
   author  = {Mortezaagha, Pouria and Rahgozar, Arya},
-  year    = {2026},
-  note    = {Submitted to Scientific Reports}
+  year    = {2026}
 }
 ```
 
